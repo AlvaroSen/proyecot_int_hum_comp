@@ -1,0 +1,24 @@
+{% load static %}
+
+<form class="formulario" method="POST" action="{% url 'login' %}">
+    {% csrf_token %}
+    <h1>Iniciar Sesión</h1>
+    <div class="contenedor">
+
+        <div class="input-contenedor">
+            <i class="fas fa-envelope icon"></i>
+            <input type="text" name="username" placeholder="Usuario" required>
+        </div>
+        
+        <div class="input-contenedor">
+            <i class="fas fa-key icon"></i>
+            <input type="password" name="password" placeholder="Contraseña" required>
+        </div>
+        
+        <input type="submit" value="Login" class="button">
+        
+        <p>Al registrarte, aceptas nuestras Condiciones de uso y Política de privacidad.</p>
+        <p>¿No tienes una cuenta? <a class="link" href="registrar.html">Registrate </a></p>
+    
+    </div>
+</form>
