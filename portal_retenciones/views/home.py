@@ -4,16 +4,13 @@ from django.shortcuts import render
 # Importamos el decorador para proteger la vista
 from django.contrib.auth.decorators import login_required
 
-# Esta vista no cambia, solo muestra el formulario de login (index.html)
+# Esta vista muestra el formulario de login
 def home_view(request):
-    return render(request, 'index.html')
+    return render(request, 'login.html')
 
 
-# --- ¡NUEVA VISTA! ---
-# Esta vista es para la página principal DESPUÉS de iniciar sesión
-# @login_required: Django automáticamente redirige al usuario al
-#                  login si intenta acceder a esta página sin sesión.
+# Vista para la página principal DESPUÉS de iniciar sesión (Menu/Inicio)
 @login_required
 def menu_view(request):
-    # Renderiza la plantilla Menu.html
-    return render(request, 'Menu.html')
+    # Renderiza el template menu.html que vamos a crear
+    return render(request, 'menu.html')

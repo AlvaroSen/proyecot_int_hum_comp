@@ -1,0 +1,524 @@
+/* ESTILOS BASE Y LAYOUT GENERAL */
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    min-height: 100vh;
+    background-color: #f4f4f4;
+}
+
+.app-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background-color: white;
+    width: 100%;
+    margin: 0;
+    box-shadow: none;
+    border-radius: 0;
+    overflow: hidden;
+}
+
+.content-area {
+    display: flex;
+    flex-grow: 1;
+    align-items: stretch;
+}
+
+/* ENCABEZADO Y LOGO */
+
+.header {
+    background-color: #ff5722;
+    color: white;
+    padding: 20px 30px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    border-bottom: 5px solid #e64a19;
+}
+
+.logo-container {
+    width: 140px;
+    height: 80px;
+    background-color: white; 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+}
+
+.header h1 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 500;
+}
+
+/* BARRA LATERAL (SIDEBAR) */
+
+.sidebar {
+    width: 250px;
+    background-color: #ff5722;
+    padding: 20px 0;
+    color: white;
+    height: 100%;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidebar li a {
+    display: flex;
+    align-items: center;
+    padding: 15px 30px;
+    text-decoration: none;
+    color: white;
+    transition: background-color 0.3s;
+    font-size: 16px;
+}
+
+.sidebar li a::before {
+    content: '•';
+    margin-right: 15px;
+    font-size: 20px;
+    line-height: 1;
+}
+
+.sidebar li a:hover {
+    background-color: #e64a19;
+}
+
+.sidebar li.active-item a {
+    background-color: #e64a19;
+    font-weight: bold;
+}
+
+/* CONTENIDO PRINCIPAL (MAIN) */
+
+.main-content {
+    flex-grow: 1;
+    background: linear-gradient(135deg, #ff9800, #ff5722);
+    padding: 30px;
+    text-align: center;
+    color: white;
+    overflow-y: auto;
+}
+
+/* --- Compartidos (Formularios y Botones) --- */
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+.form-group input[type="text"],
+.form-group input[type="date"],
+.form-group input[type="password"],
+.form-group input[type="email"],
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: 16px;
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.submit-button {
+    background-color: #ff5722;
+    color: white;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: bold;
+    transition: background-color 0.3s;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.submit-button:hover {
+    background-color: #e64a19;
+}
+
+/* --- VISTA INICIO --- */
+.welcome-message {
+    background-color: rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    padding: 40px;
+    max-width: 700px;
+    margin: 20px auto;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.welcome-message h2 {
+    margin-top: 0;
+    font-size: 2.5em;
+}
+
+.welcome-message p {
+    font-size: 1.1em;
+    line-height: 1.6;
+}
+
+/* --- VISTA FORMULARIO (Nueva Solicitud) --- */
+.form-card {
+    background-color: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    max-width: 600px;
+    margin: 0 auto;
+    text-align: left;
+    color: #333;
+}
+
+.form-card h2 {
+    color: #ff5722;
+    margin-top: 0;
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 10px;
+}
+
+fieldset {
+    border: 1px solid #ff5722;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+}
+
+legend {
+    color: #ff5722;
+    font-weight: bold;
+    padding: 0 10px;
+}
+
+/* --- VISTA LISTA DE SOLICITUDES --- */
+.content-card {
+    background-color: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    max-width: 95%;
+    margin: 0 auto;
+    text-align: left;
+    color: #333;
+}
+
+.content-card h2 {
+    color: #ff5722;
+    margin-top: 0;
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 10px;
+}
+
+.filter-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    align-items: flex-end;
+    margin-bottom: 25px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #eee;
+}
+
+.filter-group label {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: #555;
+}
+
+.filter-group input[type="date"],
+.filter-group select {
+    padding: 8px 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.filter-button {
+    background-color: #ff5722;
+    color: white;
+    padding: 9px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+.table-container {
+    width: 100%;
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 600px;
+}
+
+thead tr {
+    background-color: #fff8f5;
+    border-bottom: 2px solid #ff5722;
+}
+
+th {
+    padding: 12px 15px;
+    font-size: 14px;
+    text-align: left;
+    color: #e64a19;
+}
+
+tbody tr {
+    border-bottom: 1px solid #f0f0f0;
+    transition: background-color 0.2s;
+}
+
+td {
+    padding: 12px 15px;
+    font-size: 14px;
+    color: #444;
+}
+
+.status {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.status-pendiente {
+    background-color: #fffbe6;
+    color: #f59e0b;
+    border: 1px solid #fde68a;
+}
+
+.status-aprobado {
+    background-color: #f0fdf4;
+    color: #16a34a;
+    border: 1px solid #bbf7d0;
+}
+
+.status-rechazado {
+    background-color: #fef2f2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+}
+
+.action-button {
+    background-color: #f0f0f0;
+    color: #333;
+    padding: 5px 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: background-color 0.3s, border-color 0.3s;
+}
+
+/* VISTA PERFIL */
+
+.profile-card {
+    background-color: white;
+    padding: 0;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    max-width: 700px;
+    margin: 0 auto;
+    text-align: left;
+    color: #333;
+    overflow: hidden;
+}
+
+.profile-header {
+    background-color: #e64a19;
+    padding: 30px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    color: white;
+}
+
+.profile-avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background-color: white;
+    border: 4px solid #ff9800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 50px;
+    color: #e64a19;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+.profile-header-info h2 {
+    margin: 0 0 5px 0;
+    font-size: 24px;
+}
+
+.profile-header-info p {
+    margin: 0;
+    font-size: 16px;
+    opacity: 0.9;
+}
+
+.profile-body {
+    padding: 30px;
+}
+
+.profile-body h3 {
+    color: #ff5722;
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 10px;
+    margin-top: 0;
+    margin-bottom: 20px;
+}
+
+.profile-body .form-group input[disabled] {
+    background-color: #f4f4f4;
+    color: #777;
+    cursor: not-allowed;
+}
+
+.profile-body .submit-button {
+    margin-top: 10px;
+    width: auto;
+    padding: 12px 30px;
+}
+
+/* VISTA LOGIN */
+
+.login-page-body {
+    background: linear-gradient(135deg, #ff9800, #ff5722);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+    background-attachment: fixed;
+}
+
+.login-container {
+    width: 100%;
+    max-width: 400px;
+    margin: auto;
+}
+
+.login-card {
+    background-color: white;
+    padding: 40px;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    text-align: center;
+}
+
+.login-logo img {
+    max-width: 150px;
+    margin-bottom: 20px;
+}
+
+.login-card h2 {
+    color: #ff5722;
+    margin-top: 0;
+    font-size: 28px;
+}
+
+.login-card p {
+    color: #666;
+    margin-bottom: 30px;
+    font-size: 14px;
+}
+
+.form-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    font-size: 14px;
+    color: #666;
+}
+
+.form-options a {
+    color: #ff5722;
+    text-decoration: none;
+}
+
+.login-footer {
+    margin-top: 20px;
+    border-top: 1px solid #eee;
+    padding-top: 20px;
+    font-size: 14px;
+    color: #666;
+}
+
+.login-footer a {
+    color: #ff5722;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.login-card .submit-button {
+    width: 100%;
+    margin-top: 0;
+}
+
+/* RESPONSIVO */
+
+@media (max-width: 768px) {
+    body {
+        margin: 0;
+        min-height: 100vh;
+    }
+    
+    .content-area {
+        flex-direction: column;
+    }
+    .sidebar {
+        width: 100%;
+        padding: 10px 0;
+        order: 2;
+        box-shadow: none; 
+    }
+    .main-content {
+        order: 1;
+        min-height: 200px;
+    }
+    .header {
+        flex-direction: column;
+        text-align: center;
+        padding: 10px;
+    }
+    .header h1 {
+        font-size: 20px;
+    }
+    .logo-container {
+        width: auto;
+        height: auto;
+        padding: 10px 20px;
+    }
+    
+    .profile-header {
+        flex-direction: column;
+        text-align: center;
+    }
+}

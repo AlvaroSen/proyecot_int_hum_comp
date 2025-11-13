@@ -1,0 +1,52 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Gestión de Solicitudes{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    <div class="app-container">
+        
+        <!-- HEADER -->
+        <header class="header">
+            <div class="logo-container">
+                <img src="https://selectra.com.pe/sites/selectra.com.pe/files/styles/_default/public/inline-images/win-xs.png.webp" alt="Logo de WIN" style="max-height: 100%; max-width: 100%;">
+            </div>
+            <span>EL INTERNET DE LOS WINNERS</span>
+            <h1>Gestión de Solicitudes de Baja</h1>
+        </header>
+
+        <div class="content-area">
+            
+            <!-- SIDEBAR -->
+            <nav class="sidebar">
+                <ul>
+                    <li><a href="{% url 'menu' %}">Inicio</a></li>
+                    <li><a href="{% url 'nueva_solicitud' %}">Nueva solicitud</a></li>
+                    <li><a href="{% url 'lista_solicitudes' %}">Lista de solicitudes</a></li>
+                    <li><a href="{% url 'perfil' %}">Perfil</a></li>
+                    <li><a href="{% url 'logout' %}">Cerrar sesión</a></li>
+                </ul>
+            </nav>
+
+            <!-- CONTENIDO PRINCIPAL -->
+            <main class="main-content">
+                {% block content %}
+                <!-- El contenido de cada página va aquí -->
+                {% endblock %}
+            </main>
+
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="{% static 'js/load_component.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+
+</body>
+</html>
