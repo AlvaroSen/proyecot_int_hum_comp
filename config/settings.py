@@ -81,6 +81,19 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
+    },
+    'origen_sql': {
+        'ENGINE': 'sql_server.pyodbc',
+        'NAME': 'PORTAL_GTM',             # Tu SQL_DATABASE
+        'USER': 'sa',                       # Tu SQL_USER
+        'PASSWORD': r'pC&\z\<JRg,5,>+Y',     # Tu SQL_PASSWORD (la 'r' es importante por la diagonal '\')
+        'HOST': 'sql.alvarosen.net.pe',     # Tu SQL_SERVER
+        'PORT': '',  # Dejar vacío para usar el puerto por defecto (1433)
+        'OPTIONS': {
+            'driver': 'ODBC Driver 17 for SQL Server', # Tu SQL_DRIVER
+            # Es buena práctica añadir esto para conexiones con usuario/pass
+            'extra_params': 'Trusted_Connection=no'
+        },
     }
 }
 
