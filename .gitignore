@@ -6,8 +6,4 @@ venv/
 # Ignorar las carpetas de caché de Python
 __pycache__/
 
-# Archivo de variables de entorno (¡No subir!)
 .env
-
-# (Abre tu archivo .gitignore y añade esta línea al final)
-db.sqlite3
