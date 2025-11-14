@@ -1,0 +1,241 @@
+{% extends "base.html" %}
+{% block title %}Nueva Solicitud{% endblock %}
+
+{% block content %}
+<div class="form-card">
+    <h2>Nueva Solicitud de Baja de Servicio</h2>
+    <p>Por favor, completa los siguientes campos para iniciar tu proceso de baja.</p>
+    
+    {% if error_formulario %}
+    <div style="background-color: #fef2f2; color: #dc2626; padding: 10px; border-radius: 4px; margin-bottom: 20px; border: 1px solid #fecaca;">
+        <strong>Error:</strong> {{ error_formulario }}
+    </div>
+    {% endif %}
+
+    <form id="solicitudBajaForm" method="POST">
+        {% csrf_token %}
+        
+        <fieldset>
+            <legend>Datos del Titular</legend>
+            
+            <input type="hidden" id="cliente_id" name="cliente_id" required>
+
+            <div class="form-group">
+                <label for="search_cliente_nombre">Nombre Completo (Buscar):</label>
+                <input type="text" id="search_cliente_nombre" name="search_cliente_nombre" autocomplete="off" required>
+                <div id="search-results" style="border: 1px solid #ccc; border-top: none; display: none; background: white; position: relative; z-index: 100;"></div>
+            </div>
+            
+            <div class="form-group">
+                <label for="dni">DNI / RUC:</label>
+                <input type="text" id="dni" name="dni" readonly>
+            </div>
+            
+            <div id="circuitos-section" style="display: none; margin-top: 20px; border-top: 1px solid #eee; padding-top: 20px;">
+                <div class="form-group">
+                    <label for="search-circuitos">Buscar Circuitos del Cliente (por nombre o servicio):</label>
+                    <input type="text" id="search-circuitos" style="width: 100%; padding: 8px; box-sizing: border-box;">
+                </div>
+                
+                <div class="form-group">
+                    <label>Circuitos a seleccionar (uno o más):</label>
+                    
+                    <div style="max-height: 250px; overflow-y: auto; border: 1px solid #ccc;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead style="position: sticky; top: 0; background-color: #f5f5f5;">
+                                <tr>
+                                    <th style="padding: 8px; border-bottom: 2px solid #ccc;">Sel.</th>
+                                    <th style="padding: 8px; border-bottom: 2px solid #ccc; text-align: left;">Nombre Circuito</th>
+                                    <th style="padding: 8px; border-bottom: 2px solid #ccc; text-align: left;">Servicio</th>
+                                    <th style="padding: 8px; border-bottom: 2px solid #ccc; text-align: left;">Renta</th>
+                                </tr>
+                            </thead>
+                            <tbody id="circuitos-list-tbody">
+                                <tr>
+                                    <td colspan="4" style="padding: 10px; color: #777;" id="circuitos-placeholder">
+                                        Seleccione un cliente para ver sus circuitos.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            </fieldset>
+
+        <fieldset>
+            <legend>Motivo y Fecha de Baja</legend>
+            <div class="form-group">
+                <label for="motivo">Motivo de la Solicitud:</label>
+                <select id="motivo" name="motivo" required>
+                    <option value="">Selecciona un motivo</option>
+                    <option value="mudanza">Mudanza fuera de cobertura</option>
+                    <option value="insatisfaccion">Insatisfacción con el servicio</option>
+                    <option value="costo">Costo elevado</option>
+                    <option value="otro">Otro (especificar)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="observaciones">Observaciones (Opcional):</label>
+                <textarea id="observaciones" name="observaciones"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="fecha">Fecha Deseada de Baja:</label>
+                <input type="date" id="fecha" name="fecha" required>
+            </div>
+        </fieldset>
+
+        <button type="submit" class="submit-button">Enviar Solicitud</button>
+        
+    </form>
+</div>
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // --- Referencias a elementos del DOM ---
+    const searchInput = document.getElementById('search_cliente_nombre');
+    const resultsDiv = document.getElementById('search-results');
+    const clienteIdInput = document.getElementById('cliente_id');
+    const rucInput = document.getElementById('dni');
+
+    const circuitosSection = document.getElementById('circuitos-section');
+    const circuitosTbody = document.getElementById('circuitos-list-tbody'); // <-- Ahora es un <tbody>
+    const circuitosPlaceholder = document.getElementById('circuitos-placeholder');
+    const searchCircuitosInput = document.getElementById('search-circuitos');
+
+    // --- 1. FUNCIÓN DE BÚSQUEDA DE CLIENTES ---
+    searchInput.addEventListener('keyup', function() {
+        const query = searchInput.value;
+        
+        if (query.length === 0) {
+            clienteIdInput.value = '';
+            rucInput.value = '';
+            circuitosSection.style.display = 'none'; 
+            circuitosTbody.innerHTML = '<tr><td colspan="4" style="padding: 10px; color: #777;">Seleccione un cliente para ver sus circuitos.</td></tr>';
+        }
+
+        if (query.length < 3) { 
+            resultsDiv.innerHTML = '';
+            resultsDiv.style.display = 'none';
+            return;
+        }
+
+        fetch(`/search/clientes/?q=${query}`)
+            .then(response => response.json())
+            .then(data => {
+                resultsDiv.innerHTML = ''; 
+                if (data.clientes.length > 0) {
+                    resultsDiv.style.display = 'block';
+                    data.clientes.forEach(cliente => {
+                        const item = document.createElement('div');
+                        item.innerHTML = `<strong>${cliente.nombre}</strong> (${cliente.ruc})`;
+                        item.style.padding = '10px';
+                        item.style.cursor = 'pointer';
+                        
+                        item.addEventListener('mouseover', () => item.style.backgroundColor = '#f0f0f0');
+                        item.addEventListener('mouseout', () => item.style.backgroundColor = 'white');
+
+                        item.addEventListener('click', function() {
+                            searchInput.value = cliente.nombre; 
+                            rucInput.value = cliente.ruc;       
+                            clienteIdInput.value = cliente.id;  
+                            
+                            resultsDiv.innerHTML = '';          
+                            resultsDiv.style.display = 'none';
+
+                            loadCircuitos(cliente.id);
+                        });
+                        
+                        resultsDiv.appendChild(item);
+                    });
+                } else {
+                    resultsDiv.innerHTML = '<div style="padding: 10px; color: #777;">No se encontraron clientes.</div>';
+                }
+            });
+    });
+
+    // --- 2. ¡NUEVA FUNCIÓN! Cargar circuitos vía API ---
+    function loadCircuitos(clienteId) {
+        circuitosSection.style.display = 'block'; 
+        circuitosTbody.innerHTML = '<tr><td colspan="4" style="padding: 10px; color: #777;">Cargando circuitos...</td></tr>';
+        searchCircuitosInput.value = ''; 
+
+        fetch(`/api/get-circuitos/${clienteId}/`)
+            .then(response => response.json())
+            .then(data => {
+                circuitosTbody.innerHTML = ''; // Limpiar
+                if (data.circuitos.length > 0) {
+                    data.circuitos.forEach(circuito => {
+                        
+                        // Creamos una fila <tr> por cada circuito
+                        const tr = document.createElement('tr');
+                        tr.className = 'circuito-item'; // Para el filtro
+                        tr.style.borderBottom = '1px solid #eee';
+
+                        // Columna 1: Checkbox
+                        const tdCheck = document.createElement('td');
+                        tdCheck.style.padding = '8px';
+                        tdCheck.style.textAlign = 'center';
+                        const checkbox = document.createElement('input');
+                        checkbox.type = 'checkbox';
+                        checkbox.name = 'circuitos_seleccionados'; 
+                        checkbox.value = circuito.id; 
+                        tdCheck.appendChild(checkbox);
+
+                        // Columna 2: Nombre
+                        const tdNombre = document.createElement('td');
+                        tdNombre.textContent = circuito.nombre_circuito;
+                        tdNombre.style.padding = '8px';
+
+                        // Columna 3: Servicio
+                        const tdServicio = document.createElement('td');
+                        tdServicio.textContent = circuito.tipo_servicio;
+                        tdServicio.style.padding = '8px';
+
+                        // Columna 4: Renta
+                        const tdRenta = document.createElement('td');
+                        tdRenta.textContent = `S/ ${circuito.renta_mensual}`;
+                        tdRenta.style.padding = '8px';
+                        
+                        tr.appendChild(tdCheck);
+                        tr.appendChild(tdNombre);
+                        tr.appendChild(tdServicio);
+                        tr.appendChild(tdRenta);
+                        circuitosTbody.appendChild(tr);
+                    });
+                } else {
+                    circuitosTbody.innerHTML = '<tr><td colspan="4" style="padding: 10px; color: #777;">Este cliente no tiene circuitos registrados.</td></tr>';
+                }
+            });
+    }
+
+    // --- 3. ¡NUEVA FUNCIÓN! Filtrar la lista de circuitos (localmente) ---
+    searchCircuitosInput.addEventListener('keyup', function() {
+        const filter = searchCircuitosInput.value.toLowerCase();
+        const rows = circuitosTbody.getElementsByClassName('circuito-item');
+
+        for (let i = 0; i < rows.length; i++) {
+            // Buscamos en todas las celdas de texto
+            const nombre = rows[i].cells[1].textContent.toLowerCase();
+            const servicio = rows[i].cells[2].textContent.toLowerCase();
+            
+            if (nombre.includes(filter) || servicio.includes(filter)) {
+                rows[i].style.display = '';
+            } else {
+                rows[i].style.display = 'none';
+            }
+        }
+    });
+
+    // Ocultar resultados de cliente si se hace clic fuera
+    document.addEventListener('click', function(e) {
+        if (e.target.id !== 'search_cliente_nombre') {
+            resultsDiv.style.display = 'none';
+        }
+    });
+});
+</script>
+{% endblock %}

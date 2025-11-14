@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Inicio - Menú Principal{% endblock %}
+
+{% block content %}
+<div class="welcome-message">
+    <h2>Bienvenido, {{ user.first_name|default:user.username }}</h2>
+    <p>Utiliza el menú de la izquierda para navegar por las diferentes secciones.</p>
+    <p>En este portal podrás registrar nuevas solicitudes de baja, consultar el estado de las existentes y administrar tu perfil.</p>
+</div>
+{% endblock %}

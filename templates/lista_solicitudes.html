@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Lista de Solicitudes{% endblock %}
+
+{% block content %}
+<div class="content-card">
+    <h2>Lista de Solicitudes de Baja</h2>
+    
+    <div class="filter-container">
+        <div class="filter-group">
+            <label for="fecha-desde">Desde:</label>
+            <input type="date" id="fecha-desde" name="fecha-desde">
+        </div>
+        <div class="filter-group">
+            <label for="fecha-hasta">Hasta:</label>
+            <input type="date" id="fecha-hasta" name="fecha-hasta">
+        </div>
+        <div class="filter-group">
+            <label for="estado">Estado:</label>
+            <select id="estado" name="estado">
+                <option value="">Todos</option>
+                <option value="pendiente">Pendiente</option>
+                <option value="aprobado">Aprobado</option>
+                <option value="rechazado">Rechazado</option>
+            </select>
+        </div>
+        <button class="filter-button">Filtrar</button>
+    </div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>N° Solicitud</th>
+                    <th>Titular</th>
+                    <th>DNI/RUC</th>
+                    <th>Fecha Solicitud</th>
+                    <th>Fecha Baja</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>SOL-00125</td>
+                    <td>Juan Pérez García</td>
+                    <td>45678901</td>
+                    <td>01/11/2025</td>
+                    <td>15/11/2025</td>
+                    <td><span class="status status-pendiente">Pendiente</span></td>
+                    <td><button class="action-button">Ver</button></td>
+                </tr>
+                <tr>
+                    <td>SOL-00124</td>
+                    <td>Maria López Torres</td>
+                    <td>10203040</td>
+                    <td>30/10/2025</td>
+                    <td>05/11/2025</td>
+                    <td><span class="status status-aprobado">Aprobado</span></td>
+                    <td><button class="action-button">Ver</button></td>
+                </tr>
+                <tr>
+                    <td>SOL-00123</td>
+                    <td>Empresa XYZ S.A.C.</td>
+                    <td>20123456789</td>
+                    <td>28/10/2025</td>
+                    <td>01/11/2025</td>
+                    <td><span class="status status-rechazado">Rechazado</span></td>
+                    <td><button class="action-button">Ver</button></td>
+                </tr>
+                <tr>
+                    <td>SOL-00122</td>
+                    <td>Carlos Sánchez Ruiz</td>
+                    <td>09876543</td>
+                    <td>25/10/2025</td>
+                    <td>10/11/2025</td>
+                    <td><span class="status status-aprobado">Aprobado</span></td>
+                    <td><button class="action-button">Ver</button></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>
+{% endblock %}
