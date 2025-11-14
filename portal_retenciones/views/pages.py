@@ -6,6 +6,8 @@ from django.db import transaction
 from django.contrib import messages
 from django.contrib.auth.models import Group, User
 from django.db import IntegrityError
+from django.http import Http404 # <-- ¡IMPORTACIÓN NECESARIA!
+from django.utils import timezone # <-- ¡IMPORTACIÓN NECESARIA!
 import random
 
 from portal_retenciones.decorators import permission_required
@@ -18,7 +20,9 @@ from ..models import (
     NivelAprobacion, 
     EjecutivoRetencion, 
     AnalistaRetencion,
-    ConfiguracionAsignacion
+    ConfiguracionAsignacion,
+    Comentario, # <-- ¡MODELO NECESARIO PARA EL DETALLE!
+    HistorialEstado # <-- ¡MODELO NECESARIO PARA EL DETALLE Y AUDITORÍA!
 )
 
 # --- Función auxiliar para la gestión de personal ---
@@ -179,6 +183,59 @@ def lista_solicitudes_view(request):
     }
     
     return render(request, 'lista_solicitudes.html', context)
+
+
+# -----------------------------------------------------------------
+# -- Vista: Detalle de Solicitud (NUEVA FUNCIÓN Y LÓGICA)
+# -----------------------------------------------------------------
+@permission_required('portal_retenciones.can_view_solicitud_list')
+def solicitud_detalle_view(request, solicitud_id):
+    
+    # 1. Obtenemos la solicitud específica
+    try:
+        solicitud = Solicitud.objects.get(id=solicitud_id)
+    except Solicitud.DoesNotExist:
+        raise Http404("Solicitud no encontrada.")
+
+    # 2. Lógica de CAMBIO DE ESTADO A 'EN ANÁLISIS' (En Proceso)
+    # Solo cambiamos si el estado actual es 'Registrado'
+    if solicitud.estado_actual.nombre_estado == 'Registrado':
+        
+        try:
+            with transaction.atomic():
+                # Obtenemos el nuevo estado
+                nuevo_estado = EstadoAtencion.objects.get(nombre_estado='En Análisis') 
+                
+                # Guardamos el historial del cambio (Auditoría)
+                HistorialEstado.objects.create(
+                    solicitud=solicitud,
+                    estado_anterior=solicitud.estado_actual,
+                    estado_nuevo=nuevo_estado,
+                    fecha_cambio=timezone.now(),
+                    usuario_cambio=request.user.username 
+                )
+                
+                # Actualizamos la solicitud
+                solicitud.estado_actual = nuevo_estado
+                solicitud.save()
+                
+                messages.info(request, f"El estado de la Solicitud SOL-{solicitud_id} ha sido actualizado a 'En Análisis' (En Proceso).")
+                
+        except EstadoAtencion.DoesNotExist:
+             messages.error(request, "Error de configuración: El estado 'En Análisis' no existe en la base de datos. Ejecute la migración de datos iniciales.")
+        except Exception as e:
+             messages.error(request, f"Error al cambiar el estado: {str(e)}")
+
+
+    # 3. Obtenemos todos los datos para el template
+    context = {
+        'solicitud': solicitud,
+        'circuitos_asociados': solicitud.circuitos.all(), 
+        'comentarios': solicitud.comentario_set.all().order_by('fecha_comentario'),
+        'historial_estado': HistorialEstado.objects.filter(solicitud=solicitud).order_by('-fecha_cambio')
+    }
+    
+    return render(request, 'solicitud_detalle.html', context)
 
 
 # -----------------------------------------------------------------

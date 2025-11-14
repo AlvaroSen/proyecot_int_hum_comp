@@ -61,6 +61,7 @@
                     <td>
                         <span class="status 
                             {% if sol.estado_actual.nombre_estado == 'Registrado' %}status-pendiente
+                            {% elif sol.estado_actual.nombre_estado == 'En Análisis' %}status-proceso
                             {% elif sol.estado_actual.nombre_estado == 'Aprobado' %}status-aprobado
                             {% elif sol.estado_actual.nombre_estado == 'Rechazado' %}status-rechazado
                             {% endif %}">
@@ -73,7 +74,8 @@
                     <td>{{ sol.ejecutivo.nombre }}</td>
                     
                     <td>{{ sol.fecha_solicitud_baja|date:"d/m/Y" }}</td>
-                    <td><button class="action-button">Ver</button></td>
+                    
+                    <td><a href="{% url 'solicitud_detalle' solicitud_id=sol.id %}" class="action-button">Ver</a></td>
                 </tr>
                 {% empty %}
                 <tr>

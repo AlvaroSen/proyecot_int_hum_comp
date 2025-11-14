@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+
+{% block title %}Detalle de Solicitud SOL-{{ solicitud.id }}{% endblock %}
+
+{% block content %}
+<style>
+    /* Estilos básicos para el detalle */
+    .detail-card {
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    .detail-section h2 {
+        color: #004d40;
+        border-bottom: 2px solid #e0e0e0;
+        padding-bottom: 10px;
+        margin-top: 0;
+        margin-bottom: 15px;
+        font-size: 1.5em;
+    }
+    .detail-item {
+        display: flex;
+        margin-bottom: 10px;
+        font-size: 14px;
+        /* Asegura que el texto largo se ajuste y no rompa el layout */
+        word-break: break-word; 
+    }
+    .detail-item strong {
+        font-weight: bold;
+        color: #333;
+        width: 160px; /* Ancho fijo para las etiquetas */
+        flex-shrink: 0; /* Evita que se encoja la etiqueta */
+        margin-right: 10px;
+    }
+    .circuit-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+        font-size: 14px;
+    }
+    .circuit-table th, .circuit-table td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+    }
+    .circuit-table th {
+        background-color: #f5f5f5;
+    }
+    .comentario-item {
+        border-left: 3px solid #ccc;
+        background-color: #f9f9f9;
+        padding: 10px 15px;
+        margin-bottom: 10px;
+        border-radius: 4px;
+    }
+    .comentario-item p {
+        margin: 0;
+    }
+    .comentario-meta {
+        font-size: 0.8em;
+        color: #777;
+        margin-top: 5px;
+        font-style: italic;
+    }
+    
+    /* Estilos de Badges de Estado */
+    .status-badge {
+        padding: 5px 10px;
+        border-radius: 5px;
+        font-weight: bold;
+        color: white;
+        display: inline-block;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .status-pendiente { background-color: #ff9800; } /* Registrado */
+    .status-proceso { background-color: #2196f3; }   /* En Análisis / En Proceso */
+    .status-aprobado { background-color: #4CAF50; }
+    .status-rechazado { background-color: #f44336; }
+</style>
+
+<div class="detail-card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h1 style="color: #004d40;">Detalle de Solicitud SOL-{{ solicitud.id }}</h1>
+        <span class="status-badge 
+            {% if solicitud.estado_actual.nombre_estado == 'Registrado' %}status-pendiente
+            {% elif solicitud.estado_actual.nombre_estado == 'En Análisis' %}status-proceso
+            {% elif solicitud.estado_actual.nombre_estado == 'Aprobado' %}status-aprobado
+            {% elif solicitud.estado_actual.nombre_estado == 'Rechazado' %}status-rechazado
+            {% endif %}">
+            {{ solicitud.estado_actual.nombre_estado }}
+        </span>
+    </div>
+    
+    <div class="detail-section">
+        <h2>Información del Cliente y Solicitud</h2>
+        <div class="detail-item">
+            <strong>Razón Social:</strong> 
+            <span>{{ solicitud.cliente.razon_social }}</span>
+        </div>
+        <div class="detail-item">
+            <strong>RUC / ID Cliente:</strong> 
+            <span>{{ solicitud.cliente.ruc }}</span>
+        </div>
+        <div class="detail-item">
+            <strong>Contacto:</strong> 
+            <span>{{ solicitud.cliente.nombre_contacto|default:"N/A" }} (Tel: {{ solicitud.cliente.telefono_contacto|default:"N/A" }})</span>
+        </div>
+        <div class="detail-item">
+            <strong>Fecha Solicitud Baja:</strong> 
+            <span>{{ solicitud.fecha_solicitud_baja|date:"d/m/Y" }}</span>
+        </div>
+        <div class="detail-item" style="display: block;">
+            <strong>Descripción Inicial:</strong> 
+            <p style="margin-top: 5px; background-color: #f0f0f0; padding: 10px; border-radius: 4px;">{{ solicitud.descripcion|default:"Sin descripción." }}</p>
+        </div>
+    </div>
+
+    <div class="detail-section">
+        <h2>Personal y Trazabilidad</h2>
+        <div class="detail-item">
+            <strong>Ejecutivo Retención:</strong> 
+            <span>{{ solicitud.ejecutivo.nombre }}</span>
+        </div>
+        <div class="detail-item">
+            <strong>Analista Retención:</strong> 
+            <span>{{ solicitud.analista.nombre }}</span>
+        </div>
+        <div class="detail-item">
+            <strong>Creada por:</strong> 
+            <span>{{ solicitud.usuario_creador.first_name }} {{ solicitud.usuario_creador.last_name }}</span>
+        </div>
+        <div class="detail-item">
+            <strong>Fecha Creación:</strong> 
+            <span>{{ solicitud.fecha_creacion|date:"d/m/Y h:i A" }}</span>
+        </div>
+    </div>
+    
+    <div class="detail-section">
+        <h2>Circuitos Afectados ({{ circuitos_asociados|length }})</h2>
+        {% if circuitos_asociados %}
+        <table class="circuit-table">
+            <thead>
+                <tr>
+                    <th>Nombre Circuito</th>
+                    <th>Tipo de Servicio</th>
+                    <th>Renta Mensual (S/)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for circuito in circuitos_asociados %}
+                <tr>
+                    <td>{{ circuito.nombre_circuito }}</td>
+                    <td>{{ circuito.tipo_servicio|default:"N/A" }}</td>
+                    <td>{{ circuito.renta_mensual|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No hay circuitos asociados a esta solicitud.</p>
+        {% endif %}
+    </div>
+
+    <div class="detail-section">
+        <h2>Comentarios y Notas</h2>
+        
+        <div style="margin-bottom: 20px; padding: 15px; border: 1px dashed #ccc; border-radius: 4px;">
+            <p style="font-style: italic; margin-top: 0;">Aquí irá el formulario para **Añadir un nuevo Comentario** y el botón de acción (Aprobar/Rechazar).</p>
+        </div>
+        
+        {% if comentarios %}
+            {% for comentario in comentarios %}
+            <div class="comentario-item">
+                <p>{{ comentario.comentario }}</p>
+                <div class="comentario-meta">
+                    Publicado por **{{ comentario.usuario }}** el {{ comentario.fecha_comentario|date:"d/m/Y h:i A" }}
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p>No hay comentarios aún.</p>
+        {% endif %}
+    </div>
+
+    <div class="detail-section">
+        <h2>Historial de Estado</h2>
+        {% if historial_estado %}
+        <ul style="list-style-type: none; padding-left: 0;">
+            {% for historial in historial_estado %}
+            <li style="margin-bottom: 5px; font-size: 0.9em; padding: 5px;">
+                <span style="font-weight: bold; color: #333;">{{ historial.fecha_cambio|date:"d/m/Y h:i A" }} - </span> 
+                Estado: <strong>{{ historial.estado_nuevo.nombre_estado }}</strong> 
+                (Anterior: {{ historial.estado_anterior.nombre_estado }}) por {{ historial.usuario_cambio }}.
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p>No hay historial de cambios de estado registrado.</p>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

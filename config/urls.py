@@ -21,10 +21,12 @@ urlpatterns = [
     path('menu/', home.menu_view, name='menu'),
     path('solicitud/nueva/', pages.nueva_solicitud_view, name='nueva_solicitud'),
     path('solicitudes/lista/', pages.lista_solicitudes_view, name='lista_solicitudes'),
-    
-    # -- RUTA AÑADIDA
     path('personal/', pages.personal_view, name='personal'),
     
+    # -- RUTA AÑADIDA PARA EL DETALLE DE SOLICITUD
+    path('solicitud/detalle/<int:solicitud_id>/', pages.solicitud_detalle_view, name='solicitud_detalle'),
+    
+    path('gestion-personal/', pages.gestion_personal_view, name='gestion_personal'),
     path('perfil/', pages.perfil_view, name='perfil'),
     
     # -- API

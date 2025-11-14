@@ -33,6 +33,7 @@
                         {{ user.groups.first.name|default:'Estándar' }}
                     {% endif %}
                 </div>
+                
                 <ul>
                     
                     {% if perms.portal_retenciones.can_view_menu %}
@@ -50,6 +51,10 @@
                     {% if perms.portal_retenciones.can_view_personal %}
                     <li><a href="{% url 'personal' %}">Personal</a></li>
                     {% endif %}
+
+                    {% if perms.portal_retenciones.can_manage_personnel %}
+                    <li><a href="{% url 'gestion_personal' %}">Gestión de Personal</a></li>
+                    {% endif %}
                     
                     {% if user.is_authenticated %}
                         <li><a href="{% url 'perfil' %}">Perfil</a></li>
@@ -59,6 +64,14 @@
             </nav>
 
             <main class="main-content">
+                
+                {% if messages %}
+                    {% for message in messages %}
+                    <div class="status status-aprobado" style="padding: 15px; margin-bottom: 20px; text-align: center; font-size: 16px;">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                {% endif %}
                 {% block content %}
                 {% endblock %}
             </main>
