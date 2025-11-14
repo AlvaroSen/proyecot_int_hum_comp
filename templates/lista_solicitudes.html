@@ -2,7 +2,20 @@
 {% block title %}Lista de Solicitudes{% endblock %}
 
 {% block content %}
+
 <div class="content-card">
+
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="status status-aprobado" style="padding: 15px; margin-bottom: 20px; text-align: center; font-size: 16px;">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+
     <h2>Lista de Solicitudes de Baja</h2>
     
     <div class="filter-container">
@@ -18,7 +31,7 @@
             <label for="estado">Estado:</label>
             <select id="estado" name="estado">
                 <option value="">Todos</option>
-                <option value="pendiente">Pendiente</option>
+                <option value="pendiente">Registrado</option>
                 <option value="aprobado">Aprobado</option>
                 <option value="rechazado">Rechazado</option>
             </select>
@@ -31,54 +44,48 @@
             <thead>
                 <tr>
                     <th>N° Solicitud</th>
-                    <th>Titular</th>
-                    <th>DNI/RUC</th>
-                    <th>Fecha Solicitud</th>
-                    <th>Fecha Baja</th>
+                    <th>Cliente</th>
                     <th>Estado</th>
+                    <th>E. Comercial</th> 
+                    <th>E. Retención</th>
+                    <th>Fecha Solicitud</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
+                {% for sol in solicitudes %}
                 <tr>
-                    <td>SOL-00125</td>
-                    <td>Juan Pérez García</td>
-                    <td>45678901</td>
-                    <td>01/11/2025</td>
-                    <td>15/11/2025</td>
-                    <td><span class="status status-pendiente">Pendiente</span></td>
+                    <td>SOL-{{ sol.id }}</td>
+                    <td>{{ sol.cliente.razon_social }}</td>
+                    
+                    <td>
+                        <span class="status 
+                            {% if sol.estado_actual.nombre_estado == 'Registrado' %}status-pendiente
+                            {% elif sol.estado_actual.nombre_estado == 'Aprobado' %}status-aprobado
+                            {% elif sol.estado_actual.nombre_estado == 'Rechazado' %}status-rechazado
+                            {% endif %}">
+                            {{ sol.estado_actual.nombre_estado }}
+                        </span>
+                    </td>
+                    
+                    <td>{{ sol.usuario_creador.first_name }} {{ sol.usuario_creador.last_name }}</td>
+                    
+                    <td>{{ sol.ejecutivo.nombre }}</td>
+                    
+                    <td>{{ sol.fecha_solicitud_baja|date:"d/m/Y" }}</td>
                     <td><button class="action-button">Ver</button></td>
                 </tr>
+                {% empty %}
                 <tr>
-                    <td>SOL-00124</td>
-                    <td>Maria López Torres</td>
-                    <td>10203040</td>
-                    <td>30/10/2025</td>
-                    <td>05/11/2025</td>
-                    <td><span class="status status-aprobado">Aprobado</span></td>
-                    <td><button class="action-button">Ver</button></td>
+                    <td colspan="7" style="text-align: center; padding: 20px;">
+                        No hay solicitudes registradas.
+                    </td>
                 </tr>
-                <tr>
-                    <td>SOL-00123</td>
-                    <td>Empresa XYZ S.A.C.</td>
-                    <td>20123456789</td>
-                    <td>28/10/2025</td>
-                    <td>01/11/2025</td>
-                    <td><span class="status status-rechazado">Rechazado</span></td>
-                    <td><button class="action-button">Ver</button></td>
-                </tr>
-                <tr>
-                    <td>SOL-00122</td>
-                    <td>Carlos Sánchez Ruiz</td>
-                    <td>09876543</td>
-                    <td>25/10/2025</td>
-                    <td>10/11/2025</td>
-                    <td><span class="status status-aprobado">Aprobado</span></td>
-                    <td><button class="action-button">Ver</button></td>
-                </tr>
+                {% endfor %}
             </tbody>
         </table>
     </div>
 
 </div>
+
 {% endblock %}

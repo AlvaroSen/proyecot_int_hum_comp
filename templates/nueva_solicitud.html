@@ -61,30 +61,22 @@
                     </div>
                 </div>
             </div>
-            </fieldset>
+
+        </fieldset>
 
         <fieldset>
-            <legend>Motivo y Fecha de Baja</legend>
-            <div class="form-group">
-                <label for="motivo">Motivo de la Solicitud:</label>
-                <select id="motivo" name="motivo" required>
-                    <option value="">Selecciona un motivo</option>
-                    <option value="mudanza">Mudanza fuera de cobertura</option>
-                    <option value="insatisfaccion">Insatisfacción con el servicio</option>
-                    <option value="costo">Costo elevado</option>
-                    <option value="otro">Otro (especificar)</option>
-                </select>
-            </div>
+            <legend>Detalle de la Solicitud</legend>
+            
             <div class="form-group">
                 <label for="observaciones">Observaciones (Opcional):</label>
                 <textarea id="observaciones" name="observaciones"></textarea>
             </div>
+            
             <div class="form-group">
-                <label for="fecha">Fecha Deseada de Baja:</label>
-                <input type="date" id="fecha" name="fecha" required>
+                <label for="fecha_solicitud_baja">Fecha de Solicitud de Baja:</label>
+                <input type="date" id="fecha_solicitud_baja" name="fecha_solicitud_baja" required>
             </div>
         </fieldset>
-
         <button type="submit" class="submit-button">Enviar Solicitud</button>
         
     </form>

@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Personal Activo{% endblock %}
+
+{% block content %}
+
+<div class="content-card">
+    <h2>Personal Activo</h2>
+    <p>Lista del personal actualmente disponible para la asignación de solicitudes.</p>
+    
+    <div style="display: flex; gap: 30px; margin-top: 20px;">
+        
+        <div style="flex: 1;">
+            <h3 style="color: #ff5722; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px;">Ejecutivos de Retención</h3>
+            <ul style="list-style: none; padding-left: 0; margin-top: 10px;">
+                
+                {% for ej in ejecutivos_activos %}
+                <li style="padding: 8px 5px; border-bottom: 1px solid #f0f0f0; font-size: 16px;">
+                    {{ ej.nombre }}
+                </li>
+                {% empty %}
+                <li style="padding: 5px 0; color: #777;">No hay ejecutivos activos.</li>
+                {% endfor %}
+                
+            </ul>
+        </div>
+        
+        <div style="flex: 1;">
+            <h3 style="color: #ff5722; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px;">Analistas de Retención</h3>
+            <ul style="list-style: none; padding-left: 0; margin-top: 10px;">
+                
+                {% for an in analistas_activos %}
+                <li style="padding: 8px 5px; border-bottom: 1px solid #f0f0f0; font-size: 16px;">
+                    {{ an.nombre }}
+                </li>
+                {% empty %}
+                <li style="padding: 5px 0; color: #777;">No hay analistas activos.</li>
+                {% endfor %}
+                
+            </ul>
+        </div>
+        
+    </div>
+</div>
+
+{% endblock %}

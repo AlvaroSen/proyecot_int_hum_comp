@@ -12,7 +12,6 @@
 
     <div class="app-container">
         
-        <!-- HEADER -->
         <header class="header">
             <div class="logo-container">
                 <img src="https://selectra.com.pe/sites/selectra.com.pe/files/styles/_default/public/inline-images/win-xs.png.webp" alt="Logo de WIN" style="max-height: 100%; max-width: 100%;">
@@ -23,28 +22,50 @@
 
         <div class="content-area">
             
-            <!-- SIDEBAR -->
             <nav class="sidebar">
+                
+                <div style="padding: 15px 30px; font-weight: bold; font-size: 15px; color: #fff; background-color: #e64a19; border-bottom: 2px solid #ff9800;">
+                    Usuario: {{ user.username }}<br>
+                    Perfil: 
+                    {% if user.is_superuser %}
+                        Administrador
+                    {% else %}
+                        {{ user.groups.first.name|default:'Estándar' }}
+                    {% endif %}
+                </div>
                 <ul>
+                    
+                    {% if perms.portal_retenciones.can_view_menu %}
                     <li><a href="{% url 'menu' %}">Inicio</a></li>
+                    {% endif %}
+                    
+                    {% if perms.portal_retenciones.can_create_solicitud %}
                     <li><a href="{% url 'nueva_solicitud' %}">Nueva solicitud</a></li>
+                    {% endif %}
+
+                    {% if perms.portal_retenciones.can_view_solicitud_list %}
                     <li><a href="{% url 'lista_solicitudes' %}">Lista de solicitudes</a></li>
-                    <li><a href="{% url 'perfil' %}">Perfil</a></li>
-                    <li><a href="{% url 'logout' %}">Cerrar sesión</a></li>
+                    {% endif %}
+                    
+                    {% if perms.portal_retenciones.can_view_personal %}
+                    <li><a href="{% url 'personal' %}">Personal</a></li>
+                    {% endif %}
+                    
+                    {% if user.is_authenticated %}
+                        <li><a href="{% url 'perfil' %}">Perfil</a></li>
+                        <li><a href="{% url 'logout' %}">Cerrar sesión</a></li>
+                    {% endif %}
                 </ul>
             </nav>
 
-            <!-- CONTENIDO PRINCIPAL -->
             <main class="main-content">
                 {% block content %}
-                <!-- El contenido de cada página va aquí -->
                 {% endblock %}
             </main>
 
         </div>
     </div>
 
-    <!-- JavaScript -->
     <script src="{% static 'js/load_component.js' %}"></script>
     {% block extra_js %}{% endblock %}
 
