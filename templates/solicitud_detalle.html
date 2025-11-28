@@ -11,7 +11,7 @@
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         padding: 30px;
         margin-bottom: 20px;
-        color: #333; /* CRÍTICO: Todo el texto oscuro por defecto */
+        color: #333;
     }
     
     .detail-card h1 {
@@ -115,22 +115,6 @@
     .status-proceso { background-color: #2196f3; }
     .status-aprobado { background-color: #4CAF50; }
     .status-rechazado { background-color: #f44336; }
-    
-    /* Placeholder del formulario */
-    .form-placeholder {
-        margin-bottom: 20px;
-        padding: 15px;
-        border: 1px dashed #ccc;
-        border-radius: 4px;
-        background-color: #fffbf0;
-        color: #666;
-        font-style: italic;
-    }
-    
-    .form-placeholder p {
-        margin: 0;
-        color: #666;
-    }
     
     /* Lista de historial */
     .historial-list {
@@ -253,11 +237,69 @@
     </div>
 
     <div class="detail-section">
-        <h2>Comentarios y Notas</h2>
+        <h2>Gestión de la Solicitud</h2>
         
-        <div class="form-placeholder">
-            <p><strong>Próximamente:</strong> Aquí se implementará el formulario para añadir nuevos comentarios y botones de acción (Aprobar/Rechazar).</p>
-        </div>
+        <!-- Formulario para Agregar Comentario -->
+        <form method="POST" action="{% url 'procesar_accion_solicitud' solicitud.id %}" style="margin-bottom: 20px;">
+            {% csrf_token %}
+            <input type="hidden" name="accion" value="agregar_comentario">
+            
+            <div style="background-color: #f9f9f9; padding: 15px; border-radius: 4px; border: 1px solid #ddd;">
+                <label for="comentario" style="display: block; margin-bottom: 8px; font-weight: bold; color: #333;">
+                    💬 Agregar Comentario:
+                </label>
+                <textarea 
+                    id="comentario" 
+                    name="comentario" 
+                    rows="3" 
+                    style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; box-sizing: border-box;"
+                    placeholder="Escribe tu comentario aquí..."
+                ></textarea>
+                <button 
+                    type="submit" 
+                    style="margin-top: 10px; background-color: #2196f3; color: white; padding: 8px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: bold;">
+                    Publicar Comentario
+                </button>
+            </div>
+        </form>
+        
+        <!-- Formulario para Cambiar Estado -->
+        <form method="POST" action="{% url 'procesar_accion_solicitud' solicitud.id %}">
+            {% csrf_token %}
+            <input type="hidden" name="accion" value="cambiar_estado">
+            
+            <div style="background-color: #fffbf0; padding: 15px; border-radius: 4px; border: 1px solid #ffd700;">
+                <label for="nuevo_estado" style="display: block; margin-bottom: 8px; font-weight: bold; color: #333;">
+                    🔄 Cambiar Estado de la Solicitud:
+                </label>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <select 
+                        id="nuevo_estado" 
+                        name="nuevo_estado" 
+                        style="flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px;">
+                        <option value="">-- Seleccionar nuevo estado --</option>
+                        {% for estado in estados_disponibles %}
+                            <option value="{{ estado.id }}" {% if estado.id == solicitud.estado_actual.id %}selected{% endif %}>
+                                {{ estado.nombre_estado }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                    <button 
+                        type="submit" 
+                        style="background-color: #ff5722; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: bold; white-space: nowrap;">
+                        Cambiar Estado
+                    </button>
+                </div>
+                <small style="display: block; margin-top: 8px; color: #666; font-style: italic;">
+                    Estado actual: <strong>{{ solicitud.estado_actual.nombre_estado }}</strong>
+                </small>
+            </div>
+        </form>
+        
+    </div>
+
+    <div class="detail-section">
+        <h2>Historial de Comentarios ({{ comentarios|length }})</h2>
         
         {% if comentarios %}
             {% for comentario in comentarios %}
@@ -274,14 +316,14 @@
     </div>
 
     <div class="detail-section">
-        <h2>Historial de Estado</h2>
+        <h2>Historial de Cambios de Estado ({{ historial_estado|length }})</h2>
         {% if historial_estado %}
         <ul class="historial-list">
             {% for historial in historial_estado %}
             <li>
                 <strong>{{ historial.fecha_cambio|date:"d/m/Y h:i A" }}</strong> - 
-                Estado: <strong>{{ historial.estado_nuevo.nombre_estado }}</strong> 
-                (Anterior: {{ historial.estado_anterior.nombre_estado }}) 
+                Estado cambió de <strong>{{ historial.estado_anterior.nombre_estado }}</strong> 
+                a <strong>{{ historial.estado_nuevo.nombre_estado }}</strong> 
                 por {{ historial.usuario_cambio }}.
             </li>
             {% endfor %}
