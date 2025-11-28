@@ -2,6 +2,8 @@
 
 from django.contrib import admin
 from django.urls import path
+from django.conf import settings # <--- NECESARIO
+from django.conf.urls.static import static # <--- NECESARIO
 
 # -- Importamos los módulos de vistas
 from portal_retenciones.views import home

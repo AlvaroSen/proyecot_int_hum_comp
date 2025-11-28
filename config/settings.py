@@ -24,13 +24,17 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-vi0!o!wga-@6##wm-q--g!%b!ea7=+u%6_n84o4v%yxg^%jkds'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = [
-    'retencion.alvarosen.net.pe',  # Tu nuevo subdominio
-    '38.253.129.184',              # Tu IP pública
-    'localhost',                   # Para pruebas locales en el servidor
-    '127.0.0.1'                    # Para que Nginx se comunique con Gunicorn
+    'retencion.alvarosen.net.pe',
+    '38.253.129.184',
+    'localhost',
+    '127.0.0.1',
+    '38.253.129.184:80',
+    # AÑADE ESTOS VALORES:
+    'asen',          # El hostname del servidor (visible en el log: nov 28 16:27:56 asen...)
+    'localhost:80',  # Acceso local que incluye el puerto 80
 ]
 
 # Application definition
