@@ -24,10 +24,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-vi0!o!wga-@6##wm-q--g!%b!ea7=+u%6_n84o4v%yxg^%jkds'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = [
+    'retencion.alvarosen.net.pe',  # Tu nuevo subdominio
+    '38.253.129.184',              # Tu IP pública
+    'localhost',                   # Para pruebas locales en el servidor
+    '127.0.0.1'                    # Para que Nginx se comunique con Gunicorn
+]
 
 # Application definition
 
@@ -86,7 +90,7 @@ DATABASES = {
         'ENGINE': 'sql_server.pyodbc',
         'NAME': 'PORTAL_GTM',             # Tu SQL_DATABASE
         'USER': 'sa',                       # Tu SQL_USER
-        'PASSWORD': r'pC&\z\<JRg,5,>+Y',     # Tu SQL_PASSWORD (la 'r' es importante por la diagonal '\')
+        'PASSWORD': r'Benito3lg4to.1!#!',     # Tu SQL_PASSWORD (la 'r' es importante por la diagonal '\')
         'HOST': 'sql.alvarosen.net.pe',     # Tu SQL_SERVER
         'PORT': '',  # Dejar vacío para usar el puerto por defecto (1433)
         'OPTIONS': {
@@ -134,13 +138,13 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-# ▼▼▼ ADICIÓN AQUÍ ▼▼▼
-# Le decimos a Django dónde encontrar tus archivos estáticos
-# (CSS, JS, etc.) que no están dentro de una app.
+# 1. Directorio donde Django COPIARÁ todos los archivos estáticos para el servidor web
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# 2. Directorios donde Django BUSCARÁ archivos estáticos durante el desarrollo
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
-# ▲▲▲ FIN DE LA ADICIÓN ▲▲▲
 
 
 # Default primary key field type
