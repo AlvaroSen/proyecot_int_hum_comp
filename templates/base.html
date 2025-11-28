@@ -38,6 +38,8 @@
                     
                     {% if perms.portal_retenciones.can_view_menu %}
                     <li><a href="{% url 'menu' %}">Inicio</a></li>
+                    
+                    <li><a href="{% url 'dashboard' %}">Dashboard</a></li>
                     {% endif %}
                     
                     {% if perms.portal_retenciones.can_create_solicitud %}

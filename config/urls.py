@@ -2,13 +2,11 @@
 
 from django.contrib import admin
 from django.urls import path
-from django.conf import settings # <--- NECESARIO
-from django.conf.urls.static import static # <--- NECESARIO
 
 # -- Importamos los módulos de vistas
 from portal_retenciones.views import home
 from portal_retenciones.views.auth import auth as auth_views
-from portal_retenciones.views import pages
+from portal_retenciones.views import pages # <-- Ya está importado
 from portal_retenciones.views import api
 
 urlpatterns = [
@@ -21,6 +19,11 @@ urlpatterns = [
     
     # -- Páginas de la Aplicación
     path('menu/', home.menu_view, name='menu'),
+    
+    # --- AÑADIR ESTA NUEVA RUTA DEL DASHBOARD ---
+    path('dashboard/', pages.dashboard_view, name='dashboard'), 
+    # --------------------------------------------
+    
     path('solicitud/nueva/', pages.nueva_solicitud_view, name='nueva_solicitud'),
     path('solicitudes/lista/', pages.lista_solicitudes_view, name='lista_solicitudes'),
     path('personal/', pages.personal_view, name='personal'),

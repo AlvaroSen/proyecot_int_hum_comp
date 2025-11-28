@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Dashboard de Retenciones{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <h2 class="page-title">📊 Dashboard de Retenciones</h2>
+    <p class="subtitle">Métricas clave del portal para el seguimiento de la gestión de clientes y solicitudes.</p>
+
+    <div class="metrics-grid">
+        
+        <div class="metric-card metric-primary">
+            <h3 class="metric-title">Clientes Registrados</h3>
+            <p class="metric-value">{{ total_clientes }}</p>
+        </div>
+
+        <div class="metric-card metric-info">
+            <h3 class="metric-title">Solicitudes Totales</h3>
+            <p class="metric-value">{{ total_solicitudes }}</p>
+        </div>
+
+        <div class="metric-card metric-warning">
+            <h3 class="metric-title">Solicitudes Pendientes</h3>
+            <p class="metric-value">{{ solicitudes_pendientes }}</p>
+            <small class="metric-description">(Registrado y En Análisis)</small>
+        </div>
+
+        <div class="metric-card metric-success">
+            <h3 class="metric-title">Solicitudes Resueltas</h3>
+            <p class="metric-value">{{ solicitudes_resueltas }}</p>
+        </div>
+
+    </div>
+
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+{% endblock %}
