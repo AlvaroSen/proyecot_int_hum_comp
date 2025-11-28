@@ -4,62 +4,97 @@
 
 {% block content %}
 <style>
-    /* Estilos básicos para el detalle */
+    /* Estilos básicos para el detalle - Texto oscuro sobre fondo blanco */
     .detail-card {
         background-color: #fff;
         border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        padding: 20px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        padding: 30px;
         margin-bottom: 20px;
+        color: #333; /* CRÍTICO: Todo el texto oscuro por defecto */
     }
+    
+    .detail-card h1 {
+        color: #ff5722;
+        margin: 0;
+        font-size: 1.8em;
+    }
+    
+    .detail-section {
+        margin-top: 25px;
+    }
+    
     .detail-section h2 {
-        color: #004d40;
-        border-bottom: 2px solid #e0e0e0;
+        color: #ff5722;
+        border-bottom: 2px solid #f0f0f0;
         padding-bottom: 10px;
         margin-top: 0;
         margin-bottom: 15px;
-        font-size: 1.5em;
+        font-size: 1.3em;
     }
+    
     .detail-item {
         display: flex;
         margin-bottom: 10px;
         font-size: 14px;
-        /* Asegura que el texto largo se ajuste y no rompa el layout */
+        color: #333;
         word-break: break-word; 
     }
+    
     .detail-item strong {
         font-weight: bold;
-        color: #333;
-        width: 160px; /* Ancho fijo para las etiquetas */
-        flex-shrink: 0; /* Evita que se encoja la etiqueta */
+        color: #555;
+        width: 180px;
+        flex-shrink: 0;
         margin-right: 10px;
     }
+    
+    .detail-item span,
+    .detail-item p {
+        color: #333;
+    }
+    
     .circuit-table {
         width: 100%;
         border-collapse: collapse;
         margin-top: 15px;
         font-size: 14px;
     }
-    .circuit-table th, .circuit-table td {
+    
+    .circuit-table th, 
+    .circuit-table td {
         border: 1px solid #ddd;
-        padding: 8px;
+        padding: 10px;
         text-align: left;
+        color: #333;
     }
+    
     .circuit-table th {
-        background-color: #f5f5f5;
+        background-color: #fff8f5;
+        color: #e64a19;
+        font-weight: bold;
     }
+    
+    .circuit-table tbody tr:hover {
+        background-color: #f9f9f9;
+    }
+    
     .comentario-item {
-        border-left: 3px solid #ccc;
+        border-left: 3px solid #ff5722;
         background-color: #f9f9f9;
         padding: 10px 15px;
         margin-bottom: 10px;
         border-radius: 4px;
+        color: #333;
     }
+    
     .comentario-item p {
         margin: 0;
+        color: #333;
     }
+    
     .comentario-meta {
-        font-size: 0.8em;
+        font-size: 0.85em;
         color: #777;
         margin-top: 5px;
         font-style: italic;
@@ -67,22 +102,78 @@
     
     /* Estilos de Badges de Estado */
     .status-badge {
-        padding: 5px 10px;
-        border-radius: 5px;
+        padding: 6px 12px;
+        border-radius: 12px;
         font-weight: bold;
         color: white;
         display: inline-block;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        font-size: 0.9em;
     }
-    .status-pendiente { background-color: #ff9800; } /* Registrado */
-    .status-proceso { background-color: #2196f3; }   /* En Análisis / En Proceso */
+    
+    .status-pendiente { background-color: #ff9800; }
+    .status-proceso { background-color: #2196f3; }
     .status-aprobado { background-color: #4CAF50; }
     .status-rechazado { background-color: #f44336; }
+    
+    /* Placeholder del formulario */
+    .form-placeholder {
+        margin-bottom: 20px;
+        padding: 15px;
+        border: 1px dashed #ccc;
+        border-radius: 4px;
+        background-color: #fffbf0;
+        color: #666;
+        font-style: italic;
+    }
+    
+    .form-placeholder p {
+        margin: 0;
+        color: #666;
+    }
+    
+    /* Lista de historial */
+    .historial-list {
+        list-style-type: none;
+        padding-left: 0;
+        margin: 0;
+    }
+    
+    .historial-list li {
+        margin-bottom: 8px;
+        font-size: 0.9em;
+        padding: 8px;
+        background-color: #f9f9f9;
+        border-radius: 4px;
+        color: #333;
+    }
+    
+    .historial-list strong {
+        color: #ff5722;
+    }
+    
+    /* Mensaje cuando no hay datos */
+    .no-data-message {
+        color: #777;
+        font-style: italic;
+        padding: 10px;
+        text-align: center;
+    }
+    
+    /* Header de la solicitud */
+    .solicitud-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #f0f0f0;
+    }
 </style>
 
 <div class="detail-card">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h1 style="color: #004d40;">Detalle de Solicitud SOL-{{ solicitud.id }}</h1>
+    <div class="solicitud-header">
+        <h1>Detalle de Solicitud SOL-{{ solicitud.id }}</h1>
         <span class="status-badge 
             {% if solicitud.estado_actual.nombre_estado == 'Registrado' %}status-pendiente
             {% elif solicitud.estado_actual.nombre_estado == 'En Análisis' %}status-proceso
@@ -104,16 +195,14 @@
             <span>{{ solicitud.cliente.ruc }}</span>
         </div>
         <div class="detail-item">
-            <strong>Contacto:</strong> 
-            <span>{{ solicitud.cliente.nombre_contacto|default:"N/A" }} (Tel: {{ solicitud.cliente.telefono_contacto|default:"N/A" }})</span>
-        </div>
-        <div class="detail-item">
             <strong>Fecha Solicitud Baja:</strong> 
             <span>{{ solicitud.fecha_solicitud_baja|date:"d/m/Y" }}</span>
         </div>
         <div class="detail-item" style="display: block;">
             <strong>Descripción Inicial:</strong> 
-            <p style="margin-top: 5px; background-color: #f0f0f0; padding: 10px; border-radius: 4px;">{{ solicitud.descripcion|default:"Sin descripción." }}</p>
+            <p style="margin-top: 5px; background-color: #f9f9f9; padding: 10px; border-radius: 4px; color: #333;">
+                {{ solicitud.descripcion|default:"Sin descripción." }}
+            </p>
         </div>
     </div>
 
@@ -159,15 +248,15 @@
             </tbody>
         </table>
         {% else %}
-        <p>No hay circuitos asociados a esta solicitud.</p>
+        <p class="no-data-message">No hay circuitos asociados a esta solicitud.</p>
         {% endif %}
     </div>
 
     <div class="detail-section">
         <h2>Comentarios y Notas</h2>
         
-        <div style="margin-bottom: 20px; padding: 15px; border: 1px dashed #ccc; border-radius: 4px;">
-            <p style="font-style: italic; margin-top: 0;">Aquí irá el formulario para **Añadir un nuevo Comentario** y el botón de acción (Aprobar/Rechazar).</p>
+        <div class="form-placeholder">
+            <p><strong>Próximamente:</strong> Aquí se implementará el formulario para añadir nuevos comentarios y botones de acción (Aprobar/Rechazar).</p>
         </div>
         
         {% if comentarios %}
@@ -175,29 +264,30 @@
             <div class="comentario-item">
                 <p>{{ comentario.comentario }}</p>
                 <div class="comentario-meta">
-                    Publicado por **{{ comentario.usuario }}** el {{ comentario.fecha_comentario|date:"d/m/Y h:i A" }}
+                    Publicado por <strong>{{ comentario.usuario }}</strong> el {{ comentario.fecha_comentario|date:"d/m/Y h:i A" }}
                 </div>
             </div>
             {% endfor %}
         {% else %}
-            <p>No hay comentarios aún.</p>
+            <p class="no-data-message">No hay comentarios aún.</p>
         {% endif %}
     </div>
 
     <div class="detail-section">
         <h2>Historial de Estado</h2>
         {% if historial_estado %}
-        <ul style="list-style-type: none; padding-left: 0;">
+        <ul class="historial-list">
             {% for historial in historial_estado %}
-            <li style="margin-bottom: 5px; font-size: 0.9em; padding: 5px;">
-                <span style="font-weight: bold; color: #333;">{{ historial.fecha_cambio|date:"d/m/Y h:i A" }} - </span> 
+            <li>
+                <strong>{{ historial.fecha_cambio|date:"d/m/Y h:i A" }}</strong> - 
                 Estado: <strong>{{ historial.estado_nuevo.nombre_estado }}</strong> 
-                (Anterior: {{ historial.estado_anterior.nombre_estado }}) por {{ historial.usuario_cambio }}.
+                (Anterior: {{ historial.estado_anterior.nombre_estado }}) 
+                por {{ historial.usuario_cambio }}.
             </li>
             {% endfor %}
         </ul>
         {% else %}
-        <p>No hay historial de cambios de estado registrado.</p>
+        <p class="no-data-message">No hay historial de cambios de estado registrado.</p>
         {% endif %}
     </div>
 
