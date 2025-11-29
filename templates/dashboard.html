@@ -8,6 +8,7 @@
     <h2 class="page-title">📊 Dashboard de Retenciones</h2>
     <p class="subtitle">Métricas clave del portal para el seguimiento de la gestión de clientes y solicitudes.</p>
 
+    <!-- MÉTRICAS PRINCIPALES -->
     <div class="metrics-grid">
         
         <div class="metric-card metric-primary">
@@ -23,18 +24,246 @@
         <div class="metric-card metric-warning">
             <h3 class="metric-title">Solicitudes Pendientes</h3>
             <p class="metric-value">{{ solicitudes_pendientes }}</p>
-            <small class="metric-description">(Registrado y En Análisis)</small>
+            <small style="display: block; margin-top: 5px; opacity: 0.8; font-size: 0.85em;">(Registrado y En Análisis)</small>
         </div>
 
         <div class="metric-card metric-success">
             <h3 class="metric-title">Solicitudes Resueltas</h3>
             <p class="metric-value">{{ solicitudes_resueltas }}</p>
         </div>
+        
+        <!-- NUEVA MÉTRICA: Porcentaje de Cierre -->
+        <div class="metric-card" style="background: linear-gradient(135deg, #6366f1, #8b5cf6);">
+            <h3 class="metric-title">Porcentaje de Cierre</h3>
+            <p class="metric-value">{{ porcentaje_cierre }}%</p>
+            <small style="display: block; margin-top: 5px; opacity: 0.8; font-size: 0.85em;">(Aprobadas + Rechazadas + Ejecutadas)</small>
+        </div>
 
     </div>
 
+    <!-- SECCIÓN DE GRÁFICOS -->
+    <div class="charts-section" style="margin-top: 40px;">
+        
+        <!-- GRÁFICO 1: Distribución por Estado (Gráfico de Dona) -->
+        <div class="chart-container">
+            <div class="chart-card">
+                <h3 class="chart-title">📈 Distribución de Solicitudes por Estado</h3>
+                <div class="chart-wrapper">
+                    <canvas id="estadosChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- GRÁFICO 2: Tendencia Mensual (Gráfico de Líneas) -->
+        <div class="chart-container">
+            <div class="chart-card">
+                <h3 class="chart-title">📅 Tendencia de Solicitudes (Últimos 6 Meses)</h3>
+                <div class="chart-wrapper">
+                    <canvas id="mesesChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- GRÁFICO 3: Top Ejecutivos (Gráfico de Barras Horizontal) -->
+        <div class="chart-container">
+            <div class="chart-card">
+                <h3 class="chart-title">👥 Top 5 Ejecutivos con Más Solicitudes</h3>
+                <div class="chart-wrapper">
+                    <canvas id="ejecutivosChart"></canvas>
+                </div>
+            </div>
+        </div>
+
     </div>
+
+</div>
 {% endblock %}
 
 {% block extra_js %}
+<!-- Cargar Chart.js desde CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<script>
+// Configuración global de Chart.js
+Chart.defaults.font.family = 'Arial, sans-serif';
+Chart.defaults.color = '#333';
+
+// === GRÁFICO 1: Distribución por Estado (Dona) ===
+const estadosCtx = document.getElementById('estadosChart').getContext('2d');
+const estadosChart = new Chart(estadosCtx, {
+    type: 'doughnut',
+    data: {
+        labels: {{ estados_labels|safe }},
+        datasets: [{
+            label: 'Solicitudes',
+            data: {{ estados_valores|safe }},
+            backgroundColor: [
+                '#ff9800', // Registrado - Naranja
+                '#2196f3', // En Análisis - Azul
+                '#4CAF50', // Aprobado - Verde
+                '#f44336', // Rechazado - Rojo
+                '#9c27b0', // Baja Ejecutada - Morado
+            ],
+            borderColor: '#fff',
+            borderWidth: 2
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: {
+                    padding: 15,
+                    font: {
+                        size: 13
+                    }
+                }
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        let label = context.label || '';
+                        let value = context.parsed || 0;
+                        let total = context.dataset.data.reduce((a, b) => a + b, 0);
+                        let percentage = ((value / total) * 100).toFixed(1);
+                        return label + ': ' + value + ' (' + percentage + '%)';
+                    }
+                }
+            }
+        }
+    }
+});
+
+// === GRÁFICO 2: Tendencia Mensual (Líneas) ===
+const mesesCtx = document.getElementById('mesesChart').getContext('2d');
+const mesesChart = new Chart(mesesCtx, {
+    type: 'line',
+    data: {
+        labels: {{ meses_labels|safe }},
+        datasets: [{
+            label: 'Solicitudes Creadas',
+            data: {{ meses_valores|safe }},
+            borderColor: '#ff5722',
+            backgroundColor: 'rgba(255, 87, 34, 0.1)',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: '#ff5722',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+            pointRadius: 5,
+            pointHoverRadius: 7
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: true,
+                position: 'top'
+            },
+            tooltip: {
+                mode: 'index',
+                intersect: false
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    stepSize: 1,
+                    font: {
+                        size: 12
+                    }
+                },
+                grid: {
+                    color: 'rgba(0, 0, 0, 0.05)'
+                }
+            },
+            x: {
+                ticks: {
+                    font: {
+                        size: 12
+                    }
+                },
+                grid: {
+                    display: false
+                }
+            }
+        }
+    }
+});
+
+// === GRÁFICO 3: Top Ejecutivos (Barras Horizontales) ===
+const ejecutivosCtx = document.getElementById('ejecutivosChart').getContext('2d');
+const ejecutivosChart = new Chart(ejecutivosCtx, {
+    type: 'bar',
+    data: {
+        labels: {{ ejecutivos_labels|safe }},
+        datasets: [{
+            label: 'Solicitudes Asignadas',
+            data: {{ ejecutivos_valores|safe }},
+            backgroundColor: [
+                '#ff5722',
+                '#ff9800',
+                '#ffc107',
+                '#4CAF50',
+                '#2196f3'
+            ],
+            borderColor: [
+                '#e64a19',
+                '#f57c00',
+                '#ffa000',
+                '#388e3c',
+                '#1976d2'
+            ],
+            borderWidth: 2
+        }]
+    },
+    options: {
+        indexAxis: 'y', // Hace que las barras sean horizontales
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return context.parsed.x + ' solicitudes';
+                    }
+                }
+            }
+        },
+        scales: {
+            x: {
+                beginAtZero: true,
+                ticks: {
+                    stepSize: 1,
+                    font: {
+                        size: 12
+                    }
+                },
+                grid: {
+                    color: 'rgba(0, 0, 0, 0.05)'
+                }
+            },
+            y: {
+                ticks: {
+                    font: {
+                        size: 12
+                    }
+                },
+                grid: {
+                    display: false
+                }
+            }
+        }
+    }
+});
+</script>
 {% endblock %}

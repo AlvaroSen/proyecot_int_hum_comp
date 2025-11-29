@@ -138,11 +138,17 @@ def perfil_view(request):
     return render(request, 'perfil.html', {})
 
 
-# --- VISTA DE DASHBOARD (SIMPLIFICADA) ---
+# --- VISTA DE DASHBOARD (MEJORADA CON MÉTRICAS Y GRÁFICOS) ---
 @login_required
 @permission_required('portal_retenciones.can_view_menu')
 def dashboard_view(request):
-    """Calcula y muestra las métricas clave del portal (solo totales)."""
+    """Calcula y muestra las métricas clave del portal con gráficos interactivos."""
+    
+    from django.db.models import Count, Sum
+    from datetime import datetime, timedelta
+    import json
+    
+    # === MÉTRICAS PRINCIPALES ===
     
     # 1. Conteo de Clientes
     total_clientes = Cliente.objects.count()
@@ -155,14 +161,69 @@ def dashboard_view(request):
         estado_actual__nombre_estado__in=['Registrado', 'En Análisis']
     ).count()
 
-    # 4. Solicitudes Resueltas (por resta)
+    # 4. Solicitudes Resueltas
     solicitudes_resueltas = total_solicitudes - solicitudes_pendientes
+    
+    # 5. Porcentaje de Cierre (Aprobadas + Rechazadas + Baja Ejecutada / Total)
+    solicitudes_cerradas = Solicitud.objects.filter(
+        estado_actual__nombre_estado__in=['Aprobado', 'Rechazado', 'Baja Ejecutada']
+    ).count()
+    
+    porcentaje_cierre = round((solicitudes_cerradas / total_solicitudes * 100), 1) if total_solicitudes > 0 else 0
+
+    # === DATOS PARA GRÁFICO 1: Distribución por Estado ===
+    estados_data = Solicitud.objects.values(
+        'estado_actual__nombre_estado'
+    ).annotate(
+        cantidad=Count('id')
+    ).order_by('-cantidad')
+    
+    # Preparar datos para Chart.js
+    estados_labels = [item['estado_actual__nombre_estado'] for item in estados_data]
+    estados_valores = [item['cantidad'] for item in estados_data]
+    
+    # === DATOS PARA GRÁFICO 2: Solicitudes por Mes (últimos 6 meses) ===
+    fecha_inicio = timezone.now() - timedelta(days=180)
+    
+    solicitudes_por_mes = Solicitud.objects.filter(
+        fecha_creacion__gte=fecha_inicio
+    ).extra(
+        select={'mes': "strftime('%%Y-%%m', fecha_creacion)"}
+    ).values('mes').annotate(
+        cantidad=Count('id')
+    ).order_by('mes')
+    
+    # Convertir a listas para Chart.js
+    meses_labels = [item['mes'] for item in solicitudes_por_mes]
+    meses_valores = [item['cantidad'] for item in solicitudes_por_mes]
+    
+    # === DATOS PARA GRÁFICO 3: Top 5 Ejecutivos con más solicitudes ===
+    top_ejecutivos = Solicitud.objects.values(
+        'ejecutivo__nombre'
+    ).annotate(
+        cantidad=Count('id')
+    ).order_by('-cantidad')[:5]
+    
+    ejecutivos_labels = [item['ejecutivo__nombre'] for item in top_ejecutivos]
+    ejecutivos_valores = [item['cantidad'] for item in top_ejecutivos]
 
     context = {
+        # Métricas principales
         'total_clientes': total_clientes,
         'total_solicitudes': total_solicitudes,
         'solicitudes_pendientes': solicitudes_pendientes,
         'solicitudes_resueltas': solicitudes_resueltas,
+        'porcentaje_cierre': porcentaje_cierre,
+        
+        # Datos para gráficos (convertidos a JSON para JavaScript)
+        'estados_labels': json.dumps(estados_labels),
+        'estados_valores': json.dumps(estados_valores),
+        
+        'meses_labels': json.dumps(meses_labels),
+        'meses_valores': json.dumps(meses_valores),
+        
+        'ejecutivos_labels': json.dumps(ejecutivos_labels),
+        'ejecutivos_valores': json.dumps(ejecutivos_valores),
     }
 
     return render(request, 'dashboard.html', context)
