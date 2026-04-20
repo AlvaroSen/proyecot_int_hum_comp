@@ -1,0 +1,13 @@
+services:
+  web:
+    build: .
+    image: portal-retenciones:latest
+    container_name: portal-retenciones
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8000:8000"
+    env_file:
+      - .env
+    volumes:
+      - ./db.sqlite3:/app/db.sqlite3
+      - ./staticfiles:/app/staticfiles

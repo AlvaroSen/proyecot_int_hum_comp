@@ -10,32 +10,30 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import os
 from pathlib import Path
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
-# BASE_DIR apunta a la raíz de tu proyecto (donde está manage.py)
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+SECRET_KEY = os.environ.get(
+    'DJANGO_SECRET_KEY',
+    'django-insecure-vi0!o!wga-@6##wm-q--g!%b!ea7=+u%6_n84o4v%yxg^%jkds',
+)
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
+DEBUG = os.environ.get('DJANGO_DEBUG', 'False').lower() in ('1', 'true', 'yes')
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-vi0!o!wga-@6##wm-q--g!%b!ea7=+u%6_n84o4v%yxg^%jkds'
+ALLOWED_HOSTS = [h.strip() for h in os.environ.get(
+    'DJANGO_ALLOWED_HOSTS',
+    'retencion.alvarosen.net.pe,38.253.129.184,localhost,127.0.0.1,asen,srv-asen'
+).split(',') if h.strip()]
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+CSRF_TRUSTED_ORIGINS = [o.strip() for o in os.environ.get(
+    'DJANGO_CSRF_TRUSTED_ORIGINS',
+    'https://retencion.alvarosen.net.pe'
+).split(',') if o.strip()]
 
-ALLOWED_HOSTS = [
-    'retencion.alvarosen.net.pe',
-    '38.253.129.184',
-    'localhost',
-    '127.0.0.1',
-    '38.253.129.184:80',
-    # AÑADE ESTOS VALORES:
-    'asen',          # El hostname del servidor (visible en el log: nov 28 16:27:56 asen...)
-    'localhost:80',  # Acceso local que incluye el puerto 80
-]
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+USE_X_FORWARDED_HOST = True
 
 # Application definition
 
@@ -51,6 +49,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -74,6 +73,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'portal_retenciones.context_processors.estrategias_activas',
             ],
         },
     },
@@ -93,9 +93,9 @@ DATABASES = {
     'origen_sql': {
         'ENGINE': 'sql_server.pyodbc',
         'NAME': 'PORTAL_GTM',             # Tu SQL_DATABASE
-        'USER': 'sa',                       # Tu SQL_USER
-        'PASSWORD': r'Benito3lg4to.1!#!',     # Tu SQL_PASSWORD (la 'r' es importante por la diagonal '\')
-        'HOST': 'sql.alvarosen.net.pe',     # Tu SQL_SERVER
+        'USER': os.environ.get('SQL_USER', 'sa'),
+        'PASSWORD': os.environ.get('SQL_PASSWORD', ''),
+        'HOST': os.environ.get('SQL_HOST', 'sql.alvarosen.net.pe'),
         'PORT': '',  # Dejar vacío para usar el puerto por defecto (1433)
         'OPTIONS': {
             'driver': 'ODBC Driver 17 for SQL Server', # Tu SQL_DRIVER
@@ -150,6 +150,11 @@ STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
 
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
+}
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -157,3 +162,7 @@ STATICFILES_DIRS = [
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_URL = 'home'
+
+# --- Parámetros de negocio (Portal de Retenciones) -----------------------
+# SLA único para todas las solicitudes, expresado en horas.
+SOLICITUD_SLA_HORAS = int(os.environ.get('SOLICITUD_SLA_HORAS', 72))
