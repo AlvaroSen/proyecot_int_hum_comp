@@ -1,7 +1,14 @@
+import logging
+
+from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
+
 from ..models import Cliente, Circuito
 
-# -- API: Búsqueda de clientes (autocomplete)
+logger = logging.getLogger(__name__)
+
+
+@login_required
 def search_clientes(request):
     # -- Busca por parámetro 'q' en la URL
     query = request.GET.get('q', None)
@@ -22,23 +29,20 @@ def search_clientes(request):
 
 
 # -- API: Obtener circuitos de un cliente específico
+@login_required
 def get_circuitos_por_cliente(request, cliente_id):
-    circuitos_data = []
     try:
-        # -- Busca todos los circuitos asociados al cliente_id
-        circuitos = Circuito.objects.filter(cliente_id=cliente_id)
-        
-        # -- Convierte los objetos a un formato JSON simple
-        for circuito in circuitos:
-            circuitos_data.append({
-                'id': circuito.id,
-                'nombre_circuito': circuito.nombre_circuito,
-                'tipo_servicio': circuito.tipo_servicio,
-                'renta_mensual': circuito.renta_mensual
-            })
-        
+        circuitos = Circuito.objects.filter(cliente_id=cliente_id).select_related('tipo_servicio')
+        circuitos_data = [
+            {
+                'id': c.id,
+                'nombre_circuito': c.nombre_circuito,
+                'tipo_servicio': c.tipo_servicio.nombre if c.tipo_servicio_id else None,
+                'renta_mensual': c.renta_mensual,
+            }
+            for c in circuitos
+        ]
         return JsonResponse({'circuitos': circuitos_data})
-
-    except Exception as e:
-        # -- Manejo de errores
-        return JsonResponse({'error': str(e)}, status=404)
+    except Exception:
+        logger.exception("Error listando circuitos para cliente_id=%s", cliente_id)
+        return JsonResponse({'error': 'No se pudieron obtener los circuitos'}, status=500)
