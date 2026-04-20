@@ -24,15 +24,31 @@
             
             <nav class="sidebar">
                 
-                <div style="padding: 15px 30px; font-weight: bold; font-size: 15px; color: #fff; background-color: #e64a19; border-bottom: 2px solid #ff9800;">
-                    Usuario: {{ user.username }}<br>
-                    Perfil: 
-                    {% if user.is_superuser %}
-                        Administrador
-                    {% else %}
-                        {{ user.groups.first.name|default:'Estándar' }}
-                    {% endif %}
+                <div class="sidebar-user-info">
+                    <div>Usuario: <strong>{{ user.username }}</strong></div>
+                    <small>
+                        Perfil:
+                        {% if user.is_superuser %}
+                            Administrador
+                        {% else %}
+                            {{ user.groups.first.name|default:'Estándar' }}
+                        {% endif %}
+                    </small>
                 </div>
+
+                {% if estrategia_ejec_codigo %}
+                <div class="sidebar-strategy">
+                    <div class="sidebar-strategy-title">Asignación activa</div>
+                    <div class="sidebar-strategy-row" title="{{ estrategia_ejec_descripcion }}">
+                        <span class="sbadge">Ejec.</span>
+                        <span class="sbadge-value">{{ estrategia_ejec_nombre }}</span>
+                    </div>
+                    <div class="sidebar-strategy-row" title="{{ estrategia_anal_descripcion }}">
+                        <span class="sbadge">Anal.</span>
+                        <span class="sbadge-value">{{ estrategia_anal_nombre }}</span>
+                    </div>
+                </div>
+                {% endif %}
                 
                 <ul>
                     
@@ -69,7 +85,12 @@
                 
                 {% if messages %}
                     {% for message in messages %}
-                    <div class="status status-aprobado" style="padding: 15px; margin-bottom: 20px; text-align: center; font-size: 16px;">
+                    <div class="alert alert-{{ message.tags|default:'info' }}"
+                         style="padding: 14px 18px; margin-bottom: 20px; border-radius: 6px; font-size: 15px;
+                                {% if 'error' in message.tags %}background:#fef2f2;color:#991b1b;border:1px solid #fecaca;
+                                {% elif 'warning' in message.tags %}background:#fffbeb;color:#92400e;border:1px solid #fcd34d;
+                                {% elif 'success' in message.tags %}background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0;
+                                {% else %}background:#eff6ff;color:#1e40af;border:1px solid #bfdbfe;{% endif %}">
                         {{ message }}
                     </div>
                     {% endfor %}
@@ -80,6 +101,55 @@
 
         </div>
     </div>
+
+    <!-- Overlay de carga global -->
+    <div id="loading-overlay" aria-hidden="true"
+         style="display:none; position:fixed; inset:0; background:rgba(26,15,18,0.55);
+                z-index:9999; align-items:center; justify-content:center; flex-direction:column;
+                backdrop-filter: blur(3px);">
+        <div class="loading-spinner"
+             style="width:56px; height:56px; border:5px solid rgba(255,255,255,0.25); border-top-color:#9b5058;
+                    border-radius:50%; animation:spin 0.9s linear infinite;"></div>
+        <p style="margin-top:18px; color:#fff; font-weight:600; font-size:15px; letter-spacing:0.3px;">Cargando…</p>
+    </div>
+    <style>
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .main-content { animation: fadeIn 0.25s ease-in; }
+        #loading-overlay.visible { display: flex !important; }
+    </style>
+    <script>
+        (function() {
+            const overlay = document.getElementById('loading-overlay');
+            const show = () => overlay.classList.add('visible');
+            const hide = () => overlay.classList.remove('visible');
+
+            // Mostrar al enviar cualquier formulario.
+            document.addEventListener('submit', function(e) {
+                const form = e.target;
+                if (form.tagName === 'FORM' && !form.hasAttribute('data-no-loader')) {
+                    show();
+                }
+            }, true);
+
+            // Mostrar al hacer clic en enlaces internos (mismo dominio, navegación normal).
+            document.addEventListener('click', function(e) {
+                const link = e.target.closest('a');
+                if (!link) return;
+                const href = link.getAttribute('href');
+                if (!href || href.startsWith('#') || link.target === '_blank') return;
+                if (link.hasAttribute('data-no-loader')) return;
+                try {
+                    const url = new URL(href, window.location.origin);
+                    if (url.origin === window.location.origin) show();
+                } catch (_) { /* ignorar */ }
+            });
+
+            // Ocultar al cargar o volver con el historial (bfcache).
+            window.addEventListener('pageshow', hide);
+            window.addEventListener('load', hide);
+        })();
+    </script>
 
     <script src="{% static 'js/load_component.js' %}"></script>
     {% block extra_js %}{% endblock %}

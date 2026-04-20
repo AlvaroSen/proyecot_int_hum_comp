@@ -1,0 +1,392 @@
+{% extends "base.html" %}
+{% block title %}Gestión de Personal{% endblock %}
+
+{% block content %}
+<style>
+    .tabs {
+        display: flex;
+        gap: 4px;
+        margin-bottom: 20px;
+        border-bottom: 2px solid #e0e0e0;
+    }
+    .tab-btn {
+        padding: 12px 22px;
+        background: none;
+        border: none;
+        border-bottom: 3px solid transparent;
+        margin-bottom: -2px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        color: #666;
+        transition: all 0.15s;
+    }
+    .tab-btn:hover { color: #722f37; }
+    .tab-btn.active {
+        color: #722f37;
+        border-bottom-color: #722f37;
+    }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    .card {
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        padding: 24px 28px;
+        color: #333;
+        margin-bottom: 20px;
+    }
+    .card h2 {
+        color: #722f37;
+        border-bottom: 2px solid #f0f0f0;
+        padding-bottom: 10px;
+        margin: 0 0 18px 0;
+        font-size: 1.15em;
+    }
+
+    .estrategia-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+    @media (max-width: 900px) { .estrategia-grid { grid-template-columns: 1fr; } }
+
+    .estrategia-select { margin-bottom: 14px; }
+    .estrategia-select select {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-size: 14px;
+    }
+    .estrategia-desc {
+        background: #f9f9f9;
+        border-left: 3px solid #722f37;
+        padding: 12px 14px;
+        border-radius: 4px;
+        font-size: 13.5px;
+        color: #555;
+        line-height: 1.5;
+        min-height: 80px;
+    }
+    .preview-box {
+        background: #f9ecee;
+        border: 1px solid #e8cfd2;
+        border-radius: 6px;
+        padding: 12px 16px;
+        margin-top: 14px;
+        font-size: 13.5px;
+    }
+    .preview-box strong { color: #4a1c24; }
+
+    .persona-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13.5px;
+    }
+    .persona-table th, .persona-table td {
+        padding: 10px;
+        border-bottom: 1px solid #eee;
+        text-align: left;
+    }
+    .persona-table th {
+        background: #faf3f4;
+        color: #4a1c24;
+        font-weight: 700;
+    }
+    .persona-table input[type="number"] {
+        width: 100px;
+        padding: 6px 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+    .persona-table input[type="checkbox"] { transform: scale(1.15); }
+
+    .btn {
+        padding: 10px 22px;
+        border: none;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+    }
+    .btn-primary { background: #722f37; color: #fff; }
+    .btn-primary:hover { background: #4a1c24; }
+
+    .info-banner {
+        background: #eff6ff;
+        border: 1px solid #bfdbfe;
+        color: #1e40af;
+        padding: 12px 16px;
+        border-radius: 6px;
+        margin-bottom: 20px;
+        font-size: 13.5px;
+    }
+</style>
+
+<div class="card" style="padding: 22px 28px;">
+    <h2 style="border: none; margin: 0 0 6px 0;">Gestión de Personal y Asignación</h2>
+    <p style="margin: 0; color: #666; font-size: 14px;">
+        Configura la estrategia de asignación automática de casos y los parámetros de cada persona.
+    </p>
+</div>
+
+<div class="tabs">
+    {% if puede_ejecutivos %}
+    <button type="button" class="tab-btn active" data-tab="ejecutivos">Ejecutivos de Retención</button>
+    {% endif %}
+    {% if puede_analistas %}
+    <button type="button" class="tab-btn {% if not puede_ejecutivos %}active{% endif %}" data-tab="analistas">Analistas de Retención</button>
+    {% endif %}
+</div>
+
+{# ===================== TAB EJECUTIVOS ===================== #}
+{% if puede_ejecutivos %}
+<div class="tab-panel active" id="tab-ejecutivos">
+    <form method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="rol" value="EJECUTIVO">
+
+        <div class="card">
+            <h2>Estrategia de Asignación — Ejecutivos</h2>
+
+            <div class="estrategia-grid">
+                <div>
+                    <div class="estrategia-select">
+                        <label style="font-weight: 600; display: block; margin-bottom: 6px;">Estrategia activa:</label>
+                        <select name="estrategia" id="estrategia-ejecutivo">
+                            {% for e in estrategias %}
+                            <option value="{{ e.codigo }}"
+                                    data-desc="{{ e.descripcion }}"
+                                    {% if e.codigo == estrategia_ejecutivo_actual %}selected{% endif %}>
+                                {{ e.label }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div id="desc-ejecutivo" class="estrategia-desc"></div>
+                </div>
+                <div>
+                    <div class="preview-box">
+                        <strong>Próximo candidato sugerido:</strong><br>
+                        {% if preview_ejec %}
+                            {{ preview_ejec.nombre }}
+                        {% else %}
+                            Sin candidatos disponibles.
+                        {% endif %}
+                        <br>
+                        <small style="color: #888;">Preview según estrategia actual. Cambia al guardar.</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Parámetros por Ejecutivo</h2>
+
+            <div class="info-banner">
+                <strong>Peso:</strong> usado por la estrategia <em>Ponderado</em> (mayor = más casos).
+                <strong>Tope de carga:</strong> renta mensual máxima acumulada en casos abiertos (vacío = sin tope).
+                <strong>Activo</strong>: la persona existe y puede participar.
+                <strong>Disponible</strong>: puede recibir nuevos casos (puede estar activa pero temporalmente fuera).
+            </div>
+
+            <div style="overflow-x: auto;">
+                <table class="persona-table">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Email</th>
+                            <th style="text-align: center;">Peso</th>
+                            <th style="text-align: center;">Tope Carga (S/)</th>
+                            <th style="text-align: center;">Activo</th>
+                            <th style="text-align: center;">Disponible</th>
+                            <th style="text-align: center;">Motivo (si no disponible)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in ejecutivos %}
+                        <tr>
+                            <td><strong>{{ p.nombre }}</strong></td>
+                            <td>{{ p.email }}</td>
+                            <td style="text-align: center;">
+                                <input type="number" name="ejecutivo_{{ p.id }}_peso"
+                                       value="{{ p.peso_asignacion }}" min="0" max="100">
+                            </td>
+                            <td style="text-align: center;">
+                                <input type="number" name="ejecutivo_{{ p.id }}_tope"
+                                       value="{{ p.max_carga_renta|default_if_none:'' }}"
+                                       step="0.01" min="0" placeholder="sin tope">
+                            </td>
+                            <td style="text-align: center;">
+                                <input type="checkbox" name="ejecutivo_{{ p.id }}_activo"
+                                       {% if p.activo %}checked{% endif %}>
+                            </td>
+                            <td style="text-align: center;">
+                                <input type="checkbox" name="ejecutivo_{{ p.id }}_disponible"
+                                       {% if p.disponible_asignacion %}checked{% endif %}>
+                            </td>
+                            <td style="text-align: center;">
+                                <select name="ejecutivo_{{ p.id }}_motivo" style="padding: 6px; border: 1px solid #ccc; border-radius: 4px;">
+                                    <option value="">—</option>
+                                    {% for m in motivos %}
+                                    <option value="{{ m.id }}" {% if p.motivo_no_disponible_id == m.id %}selected{% endif %}>{{ m.nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="7" style="text-align:center; padding:20px; color:#888;">No hay ejecutivos registrados.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div style="margin-top: 18px; text-align: right;">
+                <button type="submit" class="btn btn-primary">Guardar configuración de ejecutivos</button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endif %}
+
+{# ===================== TAB ANALISTAS ===================== #}
+{% if puede_analistas %}
+<div class="tab-panel {% if not puede_ejecutivos %}active{% endif %}" id="tab-analistas">
+    <form method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="rol" value="ANALISTA">
+
+        <div class="card">
+            <h2>Estrategia de Asignación — Analistas</h2>
+
+            <div class="estrategia-grid">
+                <div>
+                    <div class="estrategia-select">
+                        <label style="font-weight: 600; display: block; margin-bottom: 6px;">Estrategia activa:</label>
+                        <select name="estrategia" id="estrategia-analista">
+                            {% for e in estrategias %}
+                            <option value="{{ e.codigo }}"
+                                    data-desc="{{ e.descripcion }}"
+                                    {% if e.codigo == estrategia_analista_actual %}selected{% endif %}>
+                                {{ e.label }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div id="desc-analista" class="estrategia-desc"></div>
+                </div>
+                <div>
+                    <div class="preview-box">
+                        <strong>Próximo candidato sugerido:</strong><br>
+                        {% if preview_anal %}
+                            {{ preview_anal.nombre }}
+                        {% else %}
+                            Sin candidatos disponibles.
+                        {% endif %}
+                        <br>
+                        <small style="color: #888;">Preview según estrategia actual. Cambia al guardar.</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Parámetros por Analista</h2>
+
+            <div class="info-banner">
+                Aplican los mismos criterios que para ejecutivos.
+            </div>
+
+            <div style="overflow-x: auto;">
+                <table class="persona-table">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Email</th>
+                            <th style="text-align: center;">Peso</th>
+                            <th style="text-align: center;">Tope Carga (S/)</th>
+                            <th style="text-align: center;">Activo</th>
+                            <th style="text-align: center;">Disponible</th>
+                            <th style="text-align: center;">Motivo (si no disponible)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in analistas %}
+                        <tr>
+                            <td><strong>{{ p.nombre }}</strong></td>
+                            <td>{{ p.email }}</td>
+                            <td style="text-align: center;">
+                                <input type="number" name="analista_{{ p.id }}_peso"
+                                       value="{{ p.peso_asignacion }}" min="0" max="100">
+                            </td>
+                            <td style="text-align: center;">
+                                <input type="number" name="analista_{{ p.id }}_tope"
+                                       value="{{ p.max_carga_renta|default_if_none:'' }}"
+                                       step="0.01" min="0" placeholder="sin tope">
+                            </td>
+                            <td style="text-align: center;">
+                                <input type="checkbox" name="analista_{{ p.id }}_activo"
+                                       {% if p.activo %}checked{% endif %}>
+                            </td>
+                            <td style="text-align: center;">
+                                <input type="checkbox" name="analista_{{ p.id }}_disponible"
+                                       {% if p.disponible_asignacion %}checked{% endif %}>
+                            </td>
+                            <td style="text-align: center;">
+                                <select name="analista_{{ p.id }}_motivo" style="padding: 6px; border: 1px solid #ccc; border-radius: 4px;">
+                                    <option value="">—</option>
+                                    {% for m in motivos %}
+                                    <option value="{{ m.id }}" {% if p.motivo_no_disponible_id == m.id %}selected{% endif %}>{{ m.nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="7" style="text-align:center; padding:20px; color:#888;">No hay analistas registrados.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div style="margin-top: 18px; text-align: right;">
+                <button type="submit" class="btn btn-primary">Guardar configuración de analistas</button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endif %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Tabs
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const tab = this.dataset.tab;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            this.classList.add('active');
+            document.getElementById('tab-' + tab).classList.add('active');
+        });
+    });
+
+    // Descripción dinámica según selección
+    function setupDescripcion(selectId, descId) {
+        const sel = document.getElementById(selectId);
+        const desc = document.getElementById(descId);
+        if (!sel || !desc) return;
+        const update = () => {
+            const opt = sel.options[sel.selectedIndex];
+            desc.textContent = opt ? (opt.dataset.desc || '') : '';
+        };
+        sel.addEventListener('change', update);
+        update();
+    }
+    setupDescripcion('estrategia-ejecutivo', 'desc-ejecutivo');
+    setupDescripcion('estrategia-analista', 'desc-analista');
+});
+</script>
+{% endblock %}

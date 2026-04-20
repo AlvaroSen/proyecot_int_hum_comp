@@ -1,45 +1,234 @@
 {% extends "base.html" %}
-{% block title %}Personal Activo{% endblock %}
+{% block title %}Directorio de Personal{% endblock %}
 
 {% block content %}
+<style>
+    .summary-strip {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+        margin-bottom: 20px;
+    }
+    @media (max-width: 900px) { .summary-strip { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 560px) { .summary-strip { grid-template-columns: 1fr; } }
 
-<div class="content-card">
-    <h2>Personal Activo</h2>
-    <p>Lista del personal actualmente disponible para la asignación de solicitudes.</p>
-    
-    <div style="display: flex; gap: 30px; margin-top: 20px;">
-        
-        <div style="flex: 1;">
-            <h3 style="color: #ff5722; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px;">Ejecutivos de Retención</h3>
-            <ul style="list-style: none; padding-left: 0; margin-top: 10px;">
-                
-                {% for ej in ejecutivos_activos %}
-                <li style="padding: 8px 5px; border-bottom: 1px solid #f0f0f0; font-size: 16px;">
-                    {{ ej.nombre }}
-                </li>
-                {% empty %}
-                <li style="padding: 5px 0; color: #777;">No hay ejecutivos activos.</li>
-                {% endfor %}
-                
-            </ul>
+    .summary-card {
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+        padding: 14px 18px;
+    }
+    .summary-label { color: #888; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.4px; }
+    .summary-value { color: #722f37; font-size: 1.7em; font-weight: 700; line-height: 1.1; margin-top: 4px; }
+    .summary-sub { color: #666; font-size: 12.5px; margin-top: 2px; }
+
+    .card {
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        padding: 24px 28px;
+        color: #333;
+        margin-bottom: 20px;
+    }
+    .card h2 {
+        color: #722f37;
+        border-bottom: 2px solid #f0f0f0;
+        padding-bottom: 10px;
+        margin: 0 0 18px 0;
+        font-size: 1.15em;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+    }
+    .card h2 .count { font-size: 13px; font-weight: 500; color: #777; }
+
+    .personas-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 14px;
+    }
+
+    .persona-tile {
+        border: 1px solid #ececec;
+        border-radius: 8px;
+        padding: 14px 16px;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        transition: border-color 0.15s;
+    }
+    .persona-tile.disponible {
+        border-color: #c8e6c9;
+        background: linear-gradient(180deg, #fbfffb 0%, #fff 100%);
+    }
+    .persona-tile.ausente {
+        border-color: #ffe0b2;
+        background: linear-gradient(180deg, #fffdfa 0%, #fff 100%);
+    }
+    .persona-tile.inactivo {
+        background: #fafafa;
+        opacity: 0.7;
+    }
+
+    .persona-avatar {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #722f37, #4a1c24);
+        color: #fff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 15px;
+        flex-shrink: 0;
+    }
+    .persona-tile.inactivo .persona-avatar { background: #9e9e9e; }
+
+    .persona-info { flex: 1; min-width: 0; }
+    .persona-info .nombre {
+        font-weight: 700;
+        font-size: 14px;
+        line-height: 1.2;
+        color: #333;
+        margin-bottom: 2px;
+    }
+    .persona-info .email {
+        font-size: 11.5px;
+        color: #888;
+        word-break: break-all;
+        margin-bottom: 6px;
+    }
+
+    .pbadge {
+        padding: 3px 9px;
+        border-radius: 10px;
+        font-size: 11px;
+        font-weight: 600;
+        white-space: nowrap;
+        display: inline-block;
+    }
+    .pbadge-disponible   { background: #e8f5e9; color: #1b5e20; border: 1px solid #a5d6a7; }
+    .pbadge-ocupado      { background: #fff3e0; color: #b26b00; border: 1px solid #ffcc80; }
+    .pbadge-vacaciones   { background: #e0f2f1; color: #00695c; border: 1px solid #80cbc4; }
+    .pbadge-baja_medica  { background: #fde7ea; color: #9b2334; border: 1px solid #eebcc3; }
+    .pbadge-licencia     { background: #ede7f6; color: #4527a0; border: 1px solid #b39ddb; }
+    .pbadge-capacitacion { background: #e3f2fd; color: #0d47a1; border: 1px solid #90caf9; }
+    .pbadge-otro         { background: #eceff1; color: #455a64; border: 1px solid #b0bec5; }
+    .pbadge-inactivo     { background: #fafafa; color: #616161; border: 1px solid #bdbdbd; }
+
+    .no-data {
+        text-align: center;
+        color: #888;
+        font-style: italic;
+        padding: 30px 20px;
+        grid-column: 1 / -1;
+    }
+</style>
+
+<div class="card" style="padding: 20px 28px;">
+    <h2 style="border: none; margin: 0 0 4px 0;">Directorio de Personal</h2>
+    <p style="margin: 0; color: #666; font-size: 14px;">
+        Quién está disponible y quién no. Antes de crear un caso, consulta acá para saber con qué equipo contamos hoy.
+    </p>
+</div>
+
+{# === Resumen === #}
+<div class="summary-strip">
+    <div class="summary-card">
+        <div class="summary-label">Ejecutivos</div>
+        <div class="summary-value">
+            {{ totales.ejecutivos.disponibles }}<span style="color:#aaa; font-size:0.6em;"> / {{ totales.ejecutivos.total }}</span>
         </div>
-        
-        <div style="flex: 1;">
-            <h3 style="color: #ff5722; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px;">Analistas de Retención</h3>
-            <ul style="list-style: none; padding-left: 0; margin-top: 10px;">
-                
-                {% for an in analistas_activos %}
-                <li style="padding: 8px 5px; border-bottom: 1px solid #f0f0f0; font-size: 16px;">
-                    {{ an.nombre }}
-                </li>
-                {% empty %}
-                <li style="padding: 5px 0; color: #777;">No hay analistas activos.</li>
-                {% endfor %}
-                
-            </ul>
+        <div class="summary-sub">disponibles hoy</div>
+    </div>
+    <div class="summary-card">
+        <div class="summary-label">Analistas</div>
+        <div class="summary-value">
+            {{ totales.analistas.disponibles }}<span style="color:#aaa; font-size:0.6em;"> / {{ totales.analistas.total }}</span>
         </div>
-        
+        <div class="summary-sub">disponibles hoy</div>
+    </div>
+    <div class="summary-card">
+        <div class="summary-label">Leyenda</div>
+        <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;">
+            <span class="pbadge pbadge-disponible">Disponible</span>
+            <span class="pbadge pbadge-vacaciones">Vacaciones</span>
+            <span class="pbadge pbadge-baja_medica">Baja médica</span>
+            <span class="pbadge pbadge-inactivo">Inactivo</span>
+        </div>
     </div>
 </div>
 
+{# === Ejecutivos === #}
+<section class="card">
+    <h2>
+        Ejecutivos de Retención
+        <span class="count">{{ ejecutivos|length }} registrados</span>
+    </h2>
+
+    <div class="personas-grid">
+        {% for p in ejecutivos %}
+        <div class="persona-tile
+            {% if not p.activo %}inactivo
+            {% elif p.disponible_asignacion %}disponible
+            {% else %}ausente{% endif %}">
+
+            <div class="persona-avatar">{{ p.nombre|slice:":1"|upper }}</div>
+            <div class="persona-info">
+                <div class="nombre">{{ p.nombre }}</div>
+                <div class="email">{{ p.email }}</div>
+                {% if not p.activo %}
+                    <span class="pbadge pbadge-inactivo">Inactivo</span>
+                {% elif p.disponible_asignacion %}
+                    <span class="pbadge pbadge-disponible">Disponible</span>
+                {% else %}
+                    <span class="pbadge pbadge-{{ p.motivo_no_disponible.codigo|lower|default:'otro' }}">
+                        {% if p.motivo_no_disponible %}{{ p.motivo_no_disponible.nombre }}{% else %}No disponible{% endif %}
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <p class="no-data">No hay ejecutivos registrados.</p>
+        {% endfor %}
+    </div>
+</section>
+
+{# === Analistas === #}
+<section class="card">
+    <h2>
+        Analistas de Retención
+        <span class="count">{{ analistas|length }} registrados</span>
+    </h2>
+
+    <div class="personas-grid">
+        {% for p in analistas %}
+        <div class="persona-tile
+            {% if not p.activo %}inactivo
+            {% elif p.disponible_asignacion %}disponible
+            {% else %}ausente{% endif %}">
+
+            <div class="persona-avatar">{{ p.nombre|slice:":1"|upper }}</div>
+            <div class="persona-info">
+                <div class="nombre">{{ p.nombre }}</div>
+                <div class="email">{{ p.email }}</div>
+                {% if not p.activo %}
+                    <span class="pbadge pbadge-inactivo">Inactivo</span>
+                {% elif p.disponible_asignacion %}
+                    <span class="pbadge pbadge-disponible">Disponible</span>
+                {% else %}
+                    <span class="pbadge pbadge-{{ p.motivo_no_disponible.codigo|lower|default:'otro' }}">
+                        {% if p.motivo_no_disponible %}{{ p.motivo_no_disponible.nombre }}{% else %}No disponible{% endif %}
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <p class="no-data">No hay analistas registrados.</p>
+        {% endfor %}
+    </div>
+</section>
 {% endblock %}

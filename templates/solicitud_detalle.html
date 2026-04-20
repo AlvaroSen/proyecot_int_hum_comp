@@ -4,334 +4,614 @@
 
 {% block content %}
 <style>
-    /* Estilos básicos para el detalle - Texto oscuro sobre fondo blanco */
-    .detail-card {
-        background-color: #fff;
-        border-radius: 8px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        padding: 30px;
-        margin-bottom: 20px;
-        color: #333;
-    }
-    
-    .detail-card h1 {
-        color: #ff5722;
-        margin: 0;
-        font-size: 1.8em;
-    }
-    
-    .detail-section {
-        margin-top: 25px;
-    }
-    
-    .detail-section h2 {
-        color: #ff5722;
-        border-bottom: 2px solid #f0f0f0;
-        padding-bottom: 10px;
-        margin-top: 0;
-        margin-bottom: 15px;
-        font-size: 1.3em;
-    }
-    
-    .detail-item {
-        display: flex;
-        margin-bottom: 10px;
-        font-size: 14px;
-        color: #333;
-        word-break: break-word; 
-    }
-    
-    .detail-item strong {
-        font-weight: bold;
-        color: #555;
-        width: 180px;
-        flex-shrink: 0;
-        margin-right: 10px;
-    }
-    
-    .detail-item span,
-    .detail-item p {
-        color: #333;
-    }
-    
-    .circuit-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 15px;
-        font-size: 14px;
-    }
-    
-    .circuit-table th, 
-    .circuit-table td {
-        border: 1px solid #ddd;
-        padding: 10px;
-        text-align: left;
-        color: #333;
-    }
-    
-    .circuit-table th {
-        background-color: #fff8f5;
-        color: #e64a19;
-        font-weight: bold;
-    }
-    
-    .circuit-table tbody tr:hover {
-        background-color: #f9f9f9;
-    }
-    
-    .comentario-item {
-        border-left: 3px solid #ff5722;
-        background-color: #f9f9f9;
-        padding: 10px 15px;
-        margin-bottom: 10px;
-        border-radius: 4px;
-        color: #333;
-    }
-    
-    .comentario-item p {
-        margin: 0;
-        color: #333;
-    }
-    
-    .comentario-meta {
-        font-size: 0.85em;
-        color: #777;
-        margin-top: 5px;
-        font-style: italic;
-    }
-    
-    /* Estilos de Badges de Estado */
-    .status-badge {
-        padding: 6px 12px;
-        border-radius: 12px;
-        font-weight: bold;
-        color: white;
-        display: inline-block;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        font-size: 0.9em;
-    }
-    
-    .status-pendiente { background-color: #ff9800; }
-    .status-proceso { background-color: #2196f3; }
-    .status-aprobado { background-color: #4CAF50; }
-    .status-rechazado { background-color: #f44336; }
-    
-    /* Lista de historial */
-    .historial-list {
-        list-style-type: none;
-        padding-left: 0;
-        margin: 0;
-    }
-    
-    .historial-list li {
-        margin-bottom: 8px;
-        font-size: 0.9em;
-        padding: 8px;
-        background-color: #f9f9f9;
-        border-radius: 4px;
-        color: #333;
-    }
-    
-    .historial-list strong {
-        color: #ff5722;
-    }
-    
-    /* Mensaje cuando no hay datos */
-    .no-data-message {
-        color: #777;
-        font-style: italic;
-        padding: 10px;
-        text-align: center;
-    }
-    
-    /* Header de la solicitud */
+    /* === Layout modular en grid === */
     .solicitud-header {
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        padding: 24px 30px;
+        margin-bottom: 20px;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 20px;
-        padding-bottom: 15px;
+        flex-wrap: wrap;
+        gap: 14px;
+    }
+
+    .solicitud-header h1 {
+        color: #722f37;
+        margin: 0;
+        font-size: 1.6em;
+    }
+
+    .header-badges {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .badge {
+        padding: 6px 14px;
+        border-radius: 14px;
+        font-weight: 600;
+        color: #fff;
+        display: inline-block;
+        font-size: 0.85em;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    }
+    .badge-estado-pendiente { background-color: #9b5058; }
+    .badge-estado-proceso   { background-color: #2196f3; }
+    .badge-estado-aprobado  { background-color: #4caf50; }
+    .badge-estado-rechazado { background-color: #f44336; }
+    .badge-estado-default   { background-color: #78909c; }
+    .badge-tipo             { background-color: #6a1b9a; }
+    .badge-veredicto-pendiente   { background-color: #607d8b; }
+    .badge-veredicto-retenido    { background-color: #2e7d32; }
+    .badge-veredicto-no_retenido { background-color: #c62828; }
+    .badge-veredicto-desestimado { background-color: #424242; }
+
+    .grid-detail {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-areas:
+            "cliente     comentarios"
+            "servicios   comentarios"
+            "personal    historial"
+            "acciones    historial"
+            "asignacion  asignacion";
+        gap: 20px;
+    }
+    .card-cliente     { grid-area: cliente; }
+    .card-comentarios { grid-area: comentarios; }
+    .card-servicios   { grid-area: servicios; }
+    .card-personal    { grid-area: personal; }
+    .card-historial   { grid-area: historial; }
+    .card-acciones    { grid-area: acciones; }
+    .card-asignacion  { grid-area: asignacion; }
+
+    @media (max-width: 1000px) {
+        .grid-detail {
+            grid-template-columns: 1fr;
+            grid-template-areas:
+                "cliente"
+                "servicios"
+                "comentarios"
+                "acciones"
+                "personal"
+                "historial"
+                "asignacion";
+        }
+    }
+
+    /* === Audit card === */
+    .audit-row {
+        display: grid;
+        grid-template-columns: 140px 1fr;
+        gap: 14px;
+        padding: 14px 0;
+        border-bottom: 1px solid #eee;
+        font-size: 13.5px;
+    }
+    .audit-row:last-child { border-bottom: none; }
+    .audit-row strong { color: #555; }
+    .audit-badge {
+        display: inline-block;
+        padding: 3px 9px;
+        border-radius: 10px;
+        font-size: 11.5px;
+        font-weight: 600;
+        color: #fff;
+        background: #5e35b1;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+    }
+    .audit-razon {
+        background: #f9f9f9;
+        padding: 8px 12px;
+        border-left: 3px solid #5e35b1;
+        border-radius: 4px;
+        margin-top: 6px;
+    }
+    .audit-candidatos {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 8px;
+        font-size: 13px;
+    }
+    .audit-candidatos th,
+    .audit-candidatos td {
+        padding: 6px 10px;
+        border-bottom: 1px solid #f0f0f0;
+        text-align: left;
+    }
+    .audit-candidatos th { color: #777; font-weight: 600; font-size: 12px; }
+    .audit-candidatos tr.elegido { background: #f9ecee; font-weight: 600; }
+    details summary { cursor: pointer; color: #666; font-size: 13px; margin-top: 6px; }
+    details summary:hover { color: #722f37; }
+
+    /* === Card === */
+    .card {
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        padding: 24px 28px;
+        color: #333;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .card h2 {
+        color: #722f37;
         border-bottom: 2px solid #f0f0f0;
+        padding-bottom: 10px;
+        margin: 0 0 18px 0;
+        font-size: 1.15em;
+        font-weight: 700;
+    }
+
+    .card .card-body {
+        flex: 1;
+    }
+
+    /* === Filas clave/valor === */
+    .detail-row {
+        display: flex;
+        margin-bottom: 10px;
+        font-size: 14px;
+        word-break: break-word;
+    }
+    .detail-row strong {
+        color: #555;
+        min-width: 160px;
+        flex-shrink: 0;
+    }
+
+    .descripcion-box {
+        background: #f9f9f9;
+        padding: 10px 12px;
+        border-radius: 4px;
+        margin-top: 6px;
+        font-size: 14px;
+    }
+
+    /* === Tabla circuitos === */
+    .circuit-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+    }
+    .circuit-table th,
+    .circuit-table td {
+        border: 1px solid #eee;
+        padding: 10px;
+        text-align: left;
+    }
+    .circuit-table th {
+        background: #faf3f4;
+        color: #4a1c24;
+        font-weight: 700;
+    }
+    .circuit-table tbody tr:hover {
+        background: #fafafa;
+    }
+
+    /* === Comentarios === */
+    .comentario-item {
+        border-left: 3px solid #722f37;
+        background: #fafafa;
+        padding: 10px 14px;
+        margin-bottom: 10px;
+        border-radius: 4px;
+    }
+    .comentario-item p { margin: 0; }
+    .comentario-meta {
+        font-size: 0.8em;
+        color: #777;
+        margin-top: 6px;
+        font-style: italic;
+    }
+    .comentarios-list {
+        max-height: 360px;
+        overflow-y: auto;
+        padding-right: 4px;
+        margin-bottom: 16px;
+    }
+
+    .form-block {
+        background: #f9f9f9;
+        padding: 14px;
+        border-radius: 6px;
+        border: 1px solid #e0e0e0;
+    }
+    .form-block label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #333;
+    }
+    .form-block textarea,
+    .form-block select {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 14px;
+        box-sizing: border-box;
+    }
+    .btn-primary {
+        margin-top: 10px;
+        background: #2196f3;
+        color: #fff;
+        padding: 9px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+    }
+    .btn-accion {
+        background: #722f37;
+        color: #fff;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    /* === Historial === */
+    .historial-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        max-height: 420px;
+        overflow-y: auto;
+    }
+    .historial-list li {
+        margin-bottom: 8px;
+        font-size: 0.9em;
+        padding: 10px 12px;
+        background: #fafafa;
+        border-radius: 4px;
+        border-left: 3px solid #9b5058;
+    }
+    .historial-list strong { color: #722f37; }
+
+    .no-data-message {
+        color: #888;
+        font-style: italic;
+        padding: 10px 0;
+        text-align: center;
     }
 </style>
 
-<div class="detail-card">
-    <div class="solicitud-header">
-        <h1>Detalle de Solicitud SOL-{{ solicitud.id }}</h1>
-        <span class="status-badge 
-            {% if solicitud.estado_actual.nombre_estado == 'Registrado' %}status-pendiente
-            {% elif solicitud.estado_actual.nombre_estado == 'En Análisis' %}status-proceso
-            {% elif solicitud.estado_actual.nombre_estado == 'Aprobado' %}status-aprobado
-            {% elif solicitud.estado_actual.nombre_estado == 'Rechazado' %}status-rechazado
-            {% endif %}">
+{# === Breadcrumb / back === #}
+<style>
+    .breadcrumb-nav {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 18px;
+        font-size: 13px;
+        color: #888;
+    }
+    .breadcrumb-nav .sep { color: #ccc; }
+    .breadcrumb-nav a {
+        color: #666;
+        text-decoration: none;
+        transition: color 0.15s;
+    }
+    .breadcrumb-nav a:hover { color: #722f37; }
+    .breadcrumb-nav .current { color: #333; font-weight: 600; }
+
+    .btn-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 9px 16px 9px 12px;
+        background: #fff;
+        color: #555;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 13.5px;
+        font-weight: 600;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        transition: all 0.15s ease;
+    }
+    .btn-back:hover {
+        background: #f9ecee;
+        border-color: #c99199;
+        color: #4a1c24;
+        transform: translateX(-2px);
+        box-shadow: 0 3px 8px rgba(230,74,25,0.12);
+    }
+    .btn-back svg { flex-shrink: 0; }
+    .btn-back:hover svg { stroke: #4a1c24; }
+
+    .top-nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+</style>
+
+<div class="top-nav">
+    <a href="{% url 'lista_solicitudes' %}" class="btn-back">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+             stroke="#777" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 12H5"/>
+            <path d="M12 19l-7-7 7-7"/>
+        </svg>
+        Volver a la lista
+    </a>
+    <nav class="breadcrumb-nav" aria-label="breadcrumb">
+        <a href="{% url 'menu' %}">Inicio</a>
+        <span class="sep">/</span>
+        <a href="{% url 'lista_solicitudes' %}">Solicitudes</a>
+        <span class="sep">/</span>
+        <span class="current">SOL-{{ solicitud.id }}</span>
+    </nav>
+</div>
+
+{# === Header === #}
+<div class="solicitud-header">
+    <h1>Solicitud SOL-{{ solicitud.id }}</h1>
+    <div class="header-badges">
+        <span class="badge badge-tipo">{{ solicitud.tipo_caso.nombre }}</span>
+        <span class="badge badge-veredicto-{{ solicitud.veredicto|lower }}">
+            Veredicto: {{ solicitud.get_veredicto_display }}
+        </span>
+        <span class="badge
+            {% if solicitud.estado_actual.nombre_estado == 'Registrado' %}badge-estado-pendiente
+            {% elif solicitud.estado_actual.nombre_estado == 'En Análisis' %}badge-estado-proceso
+            {% elif solicitud.estado_actual.nombre_estado == 'Aprobado' or solicitud.estado_actual.nombre_estado == 'Baja Ejecutada' %}badge-estado-aprobado
+            {% elif solicitud.estado_actual.nombre_estado == 'Rechazado' %}badge-estado-rechazado
+            {% else %}badge-estado-default{% endif %}">
             {{ solicitud.estado_actual.nombre_estado }}
         </span>
     </div>
-    
-    <div class="detail-section">
-        <h2>Información del Cliente y Solicitud</h2>
-        <div class="detail-item">
-            <strong>Razón Social:</strong> 
-            <span>{{ solicitud.cliente.razon_social }}</span>
-        </div>
-        <div class="detail-item">
-            <strong>RUC / ID Cliente:</strong> 
-            <span>{{ solicitud.cliente.ruc }}</span>
-        </div>
-        <div class="detail-item">
-            <strong>Fecha Solicitud Baja:</strong> 
-            <span>{{ solicitud.fecha_solicitud_baja|date:"d/m/Y" }}</span>
-        </div>
-        <div class="detail-item" style="display: block;">
-            <strong>Descripción Inicial:</strong> 
-            <p style="margin-top: 5px; background-color: #f9f9f9; padding: 10px; border-radius: 4px; color: #333;">
-                {{ solicitud.descripcion|default:"Sin descripción." }}
-            </p>
-        </div>
-    </div>
+</div>
 
-    <div class="detail-section">
+<div class="grid-detail">
+
+    {# === Cliente === #}
+    <section class="card card-cliente">
+        <h2>Datos del Cliente</h2>
+        <div class="card-body">
+            <div class="detail-row">
+                <strong>Razón Social:</strong>
+                <span>{{ solicitud.cliente.razon_social }}</span>
+            </div>
+            <div class="detail-row">
+                <strong>RUC:</strong>
+                <span>{{ solicitud.cliente.ruc }}</span>
+            </div>
+            <div class="detail-row">
+                <strong>Fecha Solicitud Baja:</strong>
+                <span>{{ solicitud.fecha_solicitud_baja|date:"d/m/Y"|default:"—" }}</span>
+            </div>
+            <div class="detail-row">
+                <strong>Fecha Creación:</strong>
+                <span>{{ solicitud.fecha_creacion|date:"d/m/Y h:i A" }}</span>
+            </div>
+            <div style="margin-top: 14px;">
+                <strong style="color: #555;">Descripción inicial:</strong>
+                <div class="descripcion-box">
+                    {{ solicitud.descripcion|default:"Sin descripción." }}
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {# === Comentarios (columna derecha, abarca dos filas) === #}
+    <section class="card card-comentarios">
+        <h2>Comentarios ({{ comentarios|length }})</h2>
+        <div class="card-body">
+            <div class="comentarios-list">
+                {% if comentarios %}
+                    {% for comentario in comentarios %}
+                    <div class="comentario-item">
+                        <p>{{ comentario.comentario }}</p>
+                        <div class="comentario-meta">
+                            Publicado por
+                            <strong>{{ comentario.usuario.get_full_name|default:comentario.usuario.username|default:"—" }}</strong>
+                            el {{ comentario.fecha_comentario|date:"d/m/Y h:i A" }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="no-data-message">No hay comentarios aún.</p>
+                {% endif %}
+            </div>
+
+            <form method="POST" action="{% url 'procesar_accion_solicitud' solicitud.id %}">
+                {% csrf_token %}
+                <input type="hidden" name="accion" value="agregar_comentario">
+                <div class="form-block">
+                    <label for="comentario">Agregar Comentario</label>
+                    <textarea id="comentario" name="comentario" rows="3"
+                              placeholder="Escribe tu comentario aquí..."></textarea>
+                    <button type="submit" class="btn-primary">Publicar Comentario</button>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    {# === Servicios === #}
+    <section class="card card-servicios">
+        <h2>Servicios / Circuitos Asociados ({{ circuitos_asociados|length }})</h2>
+        <div class="card-body">
+            {% if circuitos_asociados %}
+            <table class="circuit-table">
+                <thead>
+                    <tr>
+                        <th>Nombre Circuito</th>
+                        <th>Tipo de Servicio</th>
+                        <th style="text-align: right;">Renta (S/)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for circuito in circuitos_asociados %}
+                    <tr>
+                        <td>{{ circuito.nombre_circuito }}</td>
+                        <td>{{ circuito.tipo_servicio|default:"—" }}</td>
+                        <td style="text-align: right;">{{ circuito.renta_mensual|floatformat:2 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="no-data-message">No hay circuitos asociados a esta solicitud.</p>
+            {% endif %}
+        </div>
+    </section>
+
+    {# === Personal === #}
+    <section class="card card-personal">
         <h2>Personal y Trazabilidad</h2>
-        <div class="detail-item">
-            <strong>Ejecutivo Retención:</strong> 
-            <span>{{ solicitud.ejecutivo.nombre }}</span>
-        </div>
-        <div class="detail-item">
-            <strong>Analista Retención:</strong> 
-            <span>{{ solicitud.analista.nombre }}</span>
-        </div>
-        <div class="detail-item">
-            <strong>Creada por:</strong> 
-            <span>{{ solicitud.usuario_creador.first_name }} {{ solicitud.usuario_creador.last_name }}</span>
-        </div>
-        <div class="detail-item">
-            <strong>Fecha Creación:</strong> 
-            <span>{{ solicitud.fecha_creacion|date:"d/m/Y h:i A" }}</span>
-        </div>
-    </div>
-    
-    <div class="detail-section">
-        <h2>Circuitos Afectados ({{ circuitos_asociados|length }})</h2>
-        {% if circuitos_asociados %}
-        <table class="circuit-table">
-            <thead>
-                <tr>
-                    <th>Nombre Circuito</th>
-                    <th>Tipo de Servicio</th>
-                    <th>Renta Mensual (S/)</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for circuito in circuitos_asociados %}
-                <tr>
-                    <td>{{ circuito.nombre_circuito }}</td>
-                    <td>{{ circuito.tipo_servicio|default:"N/A" }}</td>
-                    <td>{{ circuito.renta_mensual|floatformat:2 }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% else %}
-        <p class="no-data-message">No hay circuitos asociados a esta solicitud.</p>
-        {% endif %}
-    </div>
-
-    <div class="detail-section">
-        <h2>Gestión de la Solicitud</h2>
-        
-        <!-- Formulario para Agregar Comentario -->
-        <form method="POST" action="{% url 'procesar_accion_solicitud' solicitud.id %}" style="margin-bottom: 20px;">
-            {% csrf_token %}
-            <input type="hidden" name="accion" value="agregar_comentario">
-            
-            <div style="background-color: #f9f9f9; padding: 15px; border-radius: 4px; border: 1px solid #ddd;">
-                <label for="comentario" style="display: block; margin-bottom: 8px; font-weight: bold; color: #333;">
-                    💬 Agregar Comentario:
-                </label>
-                <textarea 
-                    id="comentario" 
-                    name="comentario" 
-                    rows="3" 
-                    style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; box-sizing: border-box;"
-                    placeholder="Escribe tu comentario aquí..."
-                ></textarea>
-                <button 
-                    type="submit" 
-                    style="margin-top: 10px; background-color: #2196f3; color: white; padding: 8px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: bold;">
-                    Publicar Comentario
-                </button>
+        <div class="card-body">
+            <div class="detail-row">
+                <strong>Ejecutivo Retención:</strong>
+                <span>{{ solicitud.ejecutivo.nombre }}</span>
             </div>
-        </form>
-        
-        <!-- Formulario para Cambiar Estado -->
-        <form method="POST" action="{% url 'procesar_accion_solicitud' solicitud.id %}">
-            {% csrf_token %}
-            <input type="hidden" name="accion" value="cambiar_estado">
-            
-            <div style="background-color: #fffbf0; padding: 15px; border-radius: 4px; border: 1px solid #ffd700;">
-                <label for="nuevo_estado" style="display: block; margin-bottom: 8px; font-weight: bold; color: #333;">
-                    🔄 Cambiar Estado de la Solicitud:
-                </label>
-                <div style="display: flex; gap: 10px; align-items: center;">
-                    <select 
-                        id="nuevo_estado" 
-                        name="nuevo_estado" 
-                        style="flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px;">
-                        <option value="">-- Seleccionar nuevo estado --</option>
-                        {% for estado in estados_disponibles %}
-                            <option value="{{ estado.id }}" {% if estado.id == solicitud.estado_actual.id %}selected{% endif %}>
-                                {{ estado.nombre_estado }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                    <button 
-                        type="submit" 
-                        style="background-color: #ff5722; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: bold; white-space: nowrap;">
-                        Cambiar Estado
-                    </button>
-                </div>
-                <small style="display: block; margin-top: 8px; color: #666; font-style: italic;">
-                    Estado actual: <strong>{{ solicitud.estado_actual.nombre_estado }}</strong>
-                </small>
+            <div class="detail-row">
+                <strong>Analista Retención:</strong>
+                <span>{{ solicitud.analista.nombre }}</span>
             </div>
-        </form>
-        
-    </div>
-
-    <div class="detail-section">
-        <h2>Historial de Comentarios ({{ comentarios|length }})</h2>
-        
-        {% if comentarios %}
-            {% for comentario in comentarios %}
-            <div class="comentario-item">
-                <p>{{ comentario.comentario }}</p>
-                <div class="comentario-meta">
-                    Publicado por <strong>{{ comentario.usuario }}</strong> el {{ comentario.fecha_comentario|date:"d/m/Y h:i A" }}
-                </div>
+            <div class="detail-row">
+                <strong>Nivel Aprobación:</strong>
+                <span>{{ solicitud.nivel_aprobacion.nombre_nivel }}</span>
             </div>
-            {% endfor %}
-        {% else %}
-            <p class="no-data-message">No hay comentarios aún.</p>
-        {% endif %}
-    </div>
+            <div class="detail-row">
+                <strong>Creada por:</strong>
+                <span>
+                    {{ solicitud.usuario_creador.get_full_name|default:solicitud.usuario_creador.username|default:"—" }}
+                </span>
+            </div>
+            <div class="detail-row">
+                <strong>Asignación:</strong>
+                <span>{% if solicitud.asignado_automaticamente %}Automática{% else %}Manual{% endif %}</span>
+            </div>
+        </div>
+    </section>
 
-    <div class="detail-section">
+    {# === Historial de estados === #}
+    <section class="card card-historial">
         <h2>Historial de Cambios de Estado ({{ historial_estado|length }})</h2>
-        {% if historial_estado %}
-        <ul class="historial-list">
-            {% for historial in historial_estado %}
-            <li>
-                <strong>{{ historial.fecha_cambio|date:"d/m/Y h:i A" }}</strong> - 
-                Estado cambió de <strong>{{ historial.estado_anterior.nombre_estado }}</strong> 
-                a <strong>{{ historial.estado_nuevo.nombre_estado }}</strong> 
-                por {{ historial.usuario_cambio }}.
-            </li>
-            {% endfor %}
-        </ul>
-        {% else %}
-        <p class="no-data-message">No hay historial de cambios de estado registrado.</p>
-        {% endif %}
-    </div>
+        <div class="card-body">
+            {% if historial_estado %}
+            <ul class="historial-list">
+                {% for historial in historial_estado %}
+                <li>
+                    <strong>{{ historial.fecha_cambio|date:"d/m/Y h:i A" }}</strong> —
+                    Estado cambió de <strong>{{ historial.estado_anterior.nombre_estado }}</strong>
+                    a <strong>{{ historial.estado_nuevo.nombre_estado }}</strong>
+                    por {{ historial.usuario_cambio.get_full_name|default:historial.usuario_cambio.username|default:"—" }}.
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p class="no-data-message">No hay historial de cambios de estado registrado.</p>
+            {% endif %}
+        </div>
+    </section>
+
+    {# === Auditoría de asignación === #}
+    <section class="card card-asignacion">
+        <h2>Asignación automática (auditoría)</h2>
+        <div class="card-body">
+            {% if registros_asignacion %}
+                {% for reg in registros_asignacion %}
+                <div class="audit-row">
+                    <strong>{{ reg.get_rol_display }}</strong>
+                    <div>
+                        <div style="margin-bottom: 6px;">
+                            <span class="audit-badge">{{ reg.get_estrategia_display }}</span>
+                            &nbsp;→&nbsp;
+                            <strong>{{ reg.persona_asignada_nombre }}</strong>
+                            <span style="color: #888; font-size: 12px;">· {{ reg.fecha|date:"d/m/Y H:i" }}</span>
+                        </div>
+
+                        {% if reg.detalle.razon %}
+                        <div class="audit-razon">{{ reg.detalle.razon }}</div>
+                        {% endif %}
+
+                        <details>
+                            <summary>Ver candidatos evaluados ({{ reg.detalle.candidatos|length }})</summary>
+                            {% if reg.detalle.candidatos %}
+                            <table class="audit-candidatos">
+                                <thead>
+                                    <tr>
+                                        {% for key in reg.detalle.candidatos.0.keys %}
+                                        <th>{{ key }}</th>
+                                        {% endfor %}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for c in reg.detalle.candidatos %}
+                                    <tr class="{% if c.id == reg.persona_asignada_id %}elegido{% endif %}">
+                                        {% for v in c.values %}
+                                        <td>{{ v }}</td>
+                                        {% endfor %}
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            {% endif %}
+                            {% if reg.detalle.excluidos_por_tope %}
+                            <p style="margin: 10px 0 4px; font-size: 12.5px; color: #c62828;">
+                                <strong>Excluidos por tope de carga:</strong>
+                                {% for ex in reg.detalle.excluidos_por_tope %}
+                                    {{ ex.nombre }}{% if not forloop.last %}, {% endif %}
+                                {% endfor %}
+                            </p>
+                            {% endif %}
+                        </details>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p class="no-data-message">
+                    Sin registro de auditoría. La solicitud se creó antes de implementar esta trazabilidad.
+                </p>
+            {% endif %}
+        </div>
+    </section>
+
+    {# === Acciones (cambiar estado) === #}
+    <section class="card card-acciones">
+        <h2>Acciones</h2>
+        <div class="card-body">
+            <form method="POST" action="{% url 'procesar_accion_solicitud' solicitud.id %}">
+                {% csrf_token %}
+                <input type="hidden" name="accion" value="cambiar_estado">
+                <div class="form-block">
+                    <label for="nuevo_estado">Cambiar Estado de la Solicitud</label>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <select id="nuevo_estado" name="nuevo_estado" style="flex: 1;">
+                            <option value="">-- Seleccionar nuevo estado --</option>
+                            {% for estado in estados_disponibles %}
+                                <option value="{{ estado.id }}"
+                                        {% if estado.id == solicitud.estado_actual.id %}selected{% endif %}>
+                                    {{ estado.nombre_estado }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit" class="btn-accion">Cambiar Estado</button>
+                    </div>
+                    <small style="display: block; margin-top: 10px; color: #666; font-style: italic;">
+                        Estado actual: <strong>{{ solicitud.estado_actual.nombre_estado }}</strong>
+                    </small>
+                </div>
+            </form>
+        </div>
+    </section>
 
 </div>
 {% endblock %}

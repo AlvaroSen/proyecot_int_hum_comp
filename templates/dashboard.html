@@ -4,266 +4,459 @@
 {% block title %}Dashboard de Retenciones{% endblock %}
 
 {% block content %}
-<div class="dashboard-container">
-    <h2 class="page-title"Dashboard de Retenciones</h2>
-    <p class="subtitle">Métricas clave del portal para el seguimiento de la gestión de clientes y solicitudes.</p>
+<style>
+    .dash-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 18px;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+    .dash-header h2 { margin: 0; font-size: 24px; color: #fff; font-weight: 700; }
+    .dash-header p  { margin: 4px 0 0 0; color: rgba(255,255,255,0.7); font-size: 14px; }
 
-    <!-- MÉTRICAS PRINCIPALES -->
-    <div class="metrics-grid">
-        
-        <div class="metric-card metric-primary">
-            <h3 class="metric-title">Clientes Registrados</h3>
-            <p class="metric-value">{{ total_clientes }}</p>
-        </div>
+    .period-filter form { display: flex; gap: 8px; align-items: center; }
+    .period-filter label { color: rgba(255,255,255,0.85); font-size: 13px; }
+    .period-filter select {
+        padding: 7px 10px;
+        border-radius: 6px;
+        border: 1px solid rgba(255,255,255,0.25);
+        background: rgba(0,0,0,0.35);
+        color: #fff;
+        font-size: 13px;
+        font-family: inherit;
+    }
 
-        <div class="metric-card metric-info">
-            <h3 class="metric-title">Solicitudes Totales</h3>
-            <p class="metric-value">{{ total_solicitudes }}</p>
-        </div>
+    /* === Strategy banner (igual que antes) === */
+    .strategy-banner {
+        background: rgba(255,255,255,0.06);
+        border: 1px solid rgba(255,255,255,0.15);
+        border-radius: 10px;
+        padding: 18px 22px;
+        margin-bottom: 20px;
+        backdrop-filter: blur(8px);
+    }
+    .strategy-banner-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px; }
+    .strategy-banner-header h3 { color: #fff; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; margin: 0; opacity: 0.85; }
+    .strategy-configure-link { color: #fff; text-decoration: none; font-size: 12.5px; font-weight: 600; background: rgba(114,47,55,0.7); padding: 5px 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); }
+    .strategy-configure-link:hover { background: rgba(114,47,55,1); }
+    .strategy-banner-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 700px) { .strategy-banner-grid { grid-template-columns: 1fr; } }
+    .strategy-banner-item { background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 12px 14px; }
+    .strategy-rol { color: rgba(255,255,255,0.6); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; margin-bottom: 2px; }
+    .strategy-name { color: #fff; font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+    .strategy-desc { color: rgba(255,255,255,0.7); font-size: 12px; line-height: 1.4; }
 
-        <div class="metric-card metric-warning">
-            <h3 class="metric-title">Solicitudes Pendientes</h3>
-            <p class="metric-value">{{ solicitudes_pendientes }}</p>
-            <small style="display: block; margin-top: 5px; opacity: 0.8; font-size: 0.85em;">(Registrado y En Análisis)</small>
-        </div>
+    /* === Alertas === */
+    .alerts-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+    .alert-card {
+        background: linear-gradient(135deg, #7b1f2a, #4a1c24);
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 10px;
+        padding: 14px 18px;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+    .alert-icon {
+        width: 42px; height: 42px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.15);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 22px; font-weight: 700;
+        flex-shrink: 0;
+    }
+    .alert-content .num { font-size: 20px; font-weight: 700; line-height: 1.1; }
+    .alert-content .label { font-size: 12.5px; opacity: 0.9; margin-top: 2px; }
 
-        <div class="metric-card metric-success">
-            <h3 class="metric-title">Solicitudes Resueltas</h3>
-            <p class="metric-value">{{ solicitudes_resueltas }}</p>
-        </div>
-        
-        <!-- NUEVA MÉTRICA: Porcentaje de Cierre -->
-        <div class="metric-card" style="background: linear-gradient(135deg, #6366f1, #8b5cf6);">
-            <h3 class="metric-title">Porcentaje de Cierre</h3>
-            <p class="metric-value">{{ porcentaje_cierre }}%</p>
-            <small style="display: block; margin-top: 5px; opacity: 0.8; font-size: 0.85em;">(Aprobadas + Rechazadas + Ejecutadas)</small>
-        </div>
+    /* === KPI rows === */
+    .kpi-row {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 14px;
+        margin-bottom: 20px;
+    }
+    @media (max-width: 1100px) { .kpi-row { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 560px)  { .kpi-row { grid-template-columns: 1fr; } }
 
+    .kpi-card {
+        background: rgba(255,255,255,0.06);
+        border: 1px solid rgba(255,255,255,0.15);
+        border-radius: 10px;
+        padding: 16px 20px;
+        color: #fff;
+        backdrop-filter: blur(6px);
+        transition: transform 0.15s, border-color 0.15s;
+    }
+    .kpi-card:hover { transform: translateY(-2px); border-color: rgba(255,255,255,0.3); }
+    .kpi-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: rgba(255,255,255,0.65); font-weight: 600; }
+    .kpi-value { font-size: 2.2em; font-weight: 700; margin-top: 4px; line-height: 1.1; color: #fff; }
+    .kpi-sub { font-size: 12px; margin-top: 4px; color: rgba(255,255,255,0.6); }
+
+    .kpi-accent-1 .kpi-value { color: #a5d6a7; }
+    .kpi-accent-2 .kpi-value { color: #ffd180; }
+    .kpi-accent-3 .kpi-value { color: #90caf9; }
+    .kpi-accent-4 .kpi-value { color: #ce93d8; }
+
+    /* === Cards de gráficos === */
+    .charts-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+        margin-top: 20px;
+    }
+    @media (max-width: 1000px) { .charts-grid { grid-template-columns: 1fr; } }
+
+    .chart-card {
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.3);
+        padding: 22px;
+        color: #333;
+    }
+    .chart-card h3 {
+        color: #722f37;
+        font-size: 15px;
+        font-weight: 700;
+        margin: 0 0 14px 0;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #f0f0f0;
+    }
+    .chart-wrapper { position: relative; height: 280px; width: 100%; }
+
+    .section-title {
+        color: rgba(255,255,255,0.65);
+        font-size: 11.5px;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        font-weight: 700;
+        margin: 22px 0 10px 0;
+    }
+
+    .empty-chart {
+        text-align: center;
+        padding: 50px 20px;
+        color: #888;
+        font-style: italic;
+    }
+</style>
+
+<div class="dash-header">
+    <div>
+        <h2>Dashboard de Retenciones</h2>
+        <p>KPIs de retención, volumen de casos y salud del equipo.</p>
     </div>
-
-    <!-- SECCIÓN DE GRÁFICOS -->
-    <div class="charts-section" style="margin-top: 40px;">
-        
-        <!-- GRÁFICO 1: Distribución por Estado (Gráfico de Dona) -->
-        <div class="chart-container">
-            <div class="chart-card">
-                <h3 class="chart-title">Distribución de Solicitudes por Estado</h3>
-                <div class="chart-wrapper">
-                    <canvas id="estadosChart"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <!-- GRÁFICO 2: Tendencia Mensual (Gráfico de Líneas) -->
-        <div class="chart-container">
-            <div class="chart-card">
-                <h3 class="chart-title">Tendencia de Solicitudes (Últimos 6 Meses)</h3>
-                <div class="chart-wrapper">
-                    <canvas id="mesesChart"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <!-- GRÁFICO 3: Top Ejecutivos (Gráfico de Barras Horizontal) -->
-        <div class="chart-container">
-            <div class="chart-card">
-                <h3 class="chart-title">Top 5 Ejecutivos con Más Solicitudes</h3>
-                <div class="chart-wrapper">
-                    <canvas id="ejecutivosChart"></canvas>
-                </div>
-            </div>
-        </div>
-
+    <div class="period-filter">
+        <form method="GET" id="periodo-form">
+            <label for="periodo">Periodo:</label>
+            <select id="periodo" name="periodo" onchange="document.getElementById('periodo-form').submit()">
+                {% for value, label in periodo_opciones %}
+                <option value="{{ value }}" {% if periodo == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </form>
     </div>
+</div>
 
+{% if estrategia_ejec_codigo %}
+<div class="strategy-banner">
+    <div class="strategy-banner-header">
+        <h3>Estrategia de Asignación Activa</h3>
+        {% if perms.portal_retenciones.can_configure_asignacion_ejecutivos or perms.portal_retenciones.can_configure_asignacion_analistas %}
+        <a href="{% url 'gestion_personal' %}" class="strategy-configure-link">Configurar ›</a>
+        {% endif %}
+    </div>
+    <div class="strategy-banner-grid">
+        <div class="strategy-banner-item">
+            <div class="strategy-rol">Ejecutivos</div>
+            <div class="strategy-name">{{ estrategia_ejec_nombre }}</div>
+            <div class="strategy-desc">{{ estrategia_ejec_descripcion }}</div>
+        </div>
+        <div class="strategy-banner-item">
+            <div class="strategy-rol">Analistas</div>
+            <div class="strategy-name">{{ estrategia_anal_nombre }}</div>
+            <div class="strategy-desc">{{ estrategia_anal_descripcion }}</div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{# === Alertas === #}
+{% if casos_fuera_sla or casos_viejos %}
+<p class="section-title">Atención</p>
+<div class="alerts-row">
+    {% if casos_fuera_sla %}
+    <a href="{% url 'lista_solicitudes' %}?veredicto=PENDIENTE" class="alert-card" style="text-decoration: none;">
+        <div class="alert-icon">!</div>
+        <div class="alert-content">
+            <div class="num">{{ casos_fuera_sla }} caso{{ casos_fuera_sla|pluralize:"s" }}</div>
+            <div class="label">fuera del SLA ({{ sla_horas }}h) · abiertos</div>
+        </div>
+    </a>
+    {% endif %}
+    {% if casos_viejos %}
+    <a href="{% url 'lista_solicitudes' %}?veredicto=PENDIENTE" class="alert-card" style="text-decoration: none;">
+        <div class="alert-icon">⏱</div>
+        <div class="alert-content">
+            <div class="num">{{ casos_viejos }} caso{{ casos_viejos|pluralize:"s" }}</div>
+            <div class="label">abiertos hace más de 7 días</div>
+        </div>
+    </a>
+    {% endif %}
+</div>
+{% endif %}
+
+{# === KPIs de retención === #}
+<p class="section-title">Indicadores de Retención</p>
+<div class="kpi-row">
+    <div class="kpi-card kpi-accent-1">
+        <div class="kpi-label">Tasa de Retención</div>
+        <div class="kpi-value">{{ tasa_retencion }}%</div>
+        <div class="kpi-sub">Retenidos / cerrados</div>
+    </div>
+    <div class="kpi-card kpi-accent-2">
+        <div class="kpi-label">TMG</div>
+        <div class="kpi-value">{{ tmg_horas }}<span style="font-size: 0.5em; opacity: 0.7;"> h</span></div>
+        <div class="kpi-sub">Tiempo medio de gestión</div>
+    </div>
+    <div class="kpi-card kpi-accent-3">
+        <div class="kpi-label">NS (Nivel Servicio)</div>
+        <div class="kpi-value">{{ ns }}%</div>
+        <div class="kpi-sub">Cerradas en ≤ {{ sla_horas }}h</div>
+    </div>
+    <div class="kpi-card kpi-accent-4">
+        <div class="kpi-label">NA (Nivel Atención)</div>
+        <div class="kpi-value">{{ na }}%</div>
+        <div class="kpi-sub">Con al menos un comentario</div>
+    </div>
+</div>
+
+{# === KPIs de volumen === #}
+<p class="section-title">Volumen</p>
+<div class="kpi-row">
+    <div class="kpi-card">
+        <div class="kpi-label">Clientes</div>
+        <div class="kpi-value">{{ total_clientes }}</div>
+        <div class="kpi-sub">en el sistema</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-label">Solicitudes</div>
+        <div class="kpi-value">{{ total_solicitudes }}</div>
+        <div class="kpi-sub">en el periodo</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-label">Abiertas</div>
+        <div class="kpi-value">{{ solicitudes_abiertas }}</div>
+        <div class="kpi-sub">sin veredicto final</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-label">Cerradas</div>
+        <div class="kpi-value">{{ solicitudes_cerradas }}</div>
+        <div class="kpi-sub">con veredicto</div>
+    </div>
+</div>
+
+{# === Gráficos === #}
+<p class="section-title">Análisis</p>
+<div class="charts-grid">
+    <div class="chart-card">
+        <h3>Distribución por Veredicto</h3>
+        <div class="chart-wrapper"><canvas id="veredictosChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+        <h3>Distribución por Estado</h3>
+        <div class="chart-wrapper"><canvas id="estadosChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+        <h3>Top 5 motivos de "No Retenido"</h3>
+        <div class="chart-wrapper"><canvas id="motivosChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+        <h3>Tasa de retención por ejecutivo</h3>
+        <div class="chart-wrapper"><canvas id="ejecPerfChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+        <h3>Tendencia de solicitudes (6 meses)</h3>
+        <div class="chart-wrapper"><canvas id="mesesChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+        <h3>Distribución por tipo de caso</h3>
+        <div class="chart-wrapper"><canvas id="tiposChart"></canvas></div>
+    </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
-<!-- Cargar Chart.js desde CDN -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-
 <script>
-// Configuración global de Chart.js
-Chart.defaults.font.family = 'Arial, sans-serif';
+Chart.defaults.font.family = '-apple-system, Segoe UI, Roboto, Arial, sans-serif';
 Chart.defaults.color = '#333';
 
-// === GRÁFICO 1: Distribución por Estado (Dona) ===
-const estadosCtx = document.getElementById('estadosChart').getContext('2d');
-const estadosChart = new Chart(estadosCtx, {
-    type: 'doughnut',
-    data: {
-        labels: {{ estados_labels|safe }},
-        datasets: [{
-            label: 'Solicitudes',
-            data: {{ estados_valores|safe }},
-            backgroundColor: [
-                '#ff9800', // Registrado - Naranja
-                '#2196f3', // En Análisis - Azul
-                '#4CAF50', // Aprobado - Verde
-                '#f44336', // Rechazado - Rojo
-                '#9c27b0', // Baja Ejecutada - Morado
-            ],
-            borderColor: '#fff',
-            borderWidth: 2
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                position: 'bottom',
-                labels: {
-                    padding: 15,
-                    font: {
-                        size: 13
-                    }
-                }
-            },
-            tooltip: {
-                callbacks: {
-                    label: function(context) {
-                        let label = context.label || '';
-                        let value = context.parsed || 0;
-                        let total = context.dataset.data.reduce((a, b) => a + b, 0);
-                        let percentage = ((value / total) * 100).toFixed(1);
-                        return label + ': ' + value + ' (' + percentage + '%)';
-                    }
-                }
-            }
-        }
-    }
-});
+// Paleta wine + complementarios
+const PALETTE_VEREDICTO = {
+    'Pendiente': '#607d8b',
+    'Retenido': '#2e7d32',
+    'No retenido': '#c62828',
+    'Desestimado': '#424242',
+};
+const PALETTE_ESTADO = ['#9b5058', '#2196f3', '#4caf50', '#c62828', '#9c27b0', '#78909c'];
+const PALETTE_TIPO = ['#6a1b9a', '#283593', '#00695c', '#b26b00'];
 
-// === GRÁFICO 2: Tendencia Mensual (Líneas) ===
-const mesesCtx = document.getElementById('mesesChart').getContext('2d');
-const mesesChart = new Chart(mesesCtx, {
-    type: 'line',
-    data: {
-        labels: {{ meses_labels|safe }},
-        datasets: [{
-            label: 'Solicitudes Creadas',
-            data: {{ meses_valores|safe }},
-            borderColor: '#ff5722',
-            backgroundColor: 'rgba(255, 87, 34, 0.1)',
-            borderWidth: 3,
-            fill: true,
-            tension: 0.4,
-            pointBackgroundColor: '#ff5722',
-            pointBorderColor: '#fff',
-            pointBorderWidth: 2,
-            pointRadius: 5,
-            pointHoverRadius: 7
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                display: true,
-                position: 'top'
-            },
-            tooltip: {
-                mode: 'index',
-                intersect: false
-            }
+function renderDoughnut(id, labels, data, palette) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (!data || data.length === 0) {
+        el.parentElement.innerHTML = '<div class="empty-chart">Sin datos en el periodo seleccionado.</div>';
+        return;
+    }
+    const colors = Array.isArray(palette)
+        ? labels.map((_, i) => palette[i % palette.length])
+        : labels.map(l => palette[l] || '#9b5058');
+    new Chart(el.getContext('2d'), {
+        type: 'doughnut',
+        data: {
+            labels: labels,
+            datasets: [{ data: data, backgroundColor: colors, borderColor: '#fff', borderWidth: 2 }],
         },
-        scales: {
-            y: {
-                beginAtZero: true,
-                ticks: {
-                    stepSize: 1,
-                    font: {
-                        size: 12
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom', labels: { padding: 12, font: { size: 12 } } },
+                tooltip: {
+                    callbacks: {
+                        label: function(ctx) {
+                            const total = ctx.dataset.data.reduce((a,b)=>a+b,0);
+                            const pct = ((ctx.parsed/total)*100).toFixed(1);
+                            return `${ctx.label}: ${ctx.parsed} (${pct}%)`;
+                        }
                     }
-                },
-                grid: {
-                    color: 'rgba(0, 0, 0, 0.05)'
-                }
-            },
-            x: {
-                ticks: {
-                    font: {
-                        size: 12
-                    }
-                },
-                grid: {
-                    display: false
                 }
             }
         }
-    }
-});
+    });
+}
 
-// === GRÁFICO 3: Top Ejecutivos (Barras Horizontales) ===
-const ejecutivosCtx = document.getElementById('ejecutivosChart').getContext('2d');
-const ejecutivosChart = new Chart(ejecutivosCtx, {
-    type: 'bar',
-    data: {
-        labels: {{ ejecutivos_labels|safe }},
-        datasets: [{
-            label: 'Solicitudes Asignadas',
-            data: {{ ejecutivos_valores|safe }},
-            backgroundColor: [
-                '#ff5722',
-                '#ff9800',
-                '#ffc107',
-                '#4CAF50',
-                '#2196f3'
-            ],
-            borderColor: [
-                '#e64a19',
-                '#f57c00',
-                '#ffa000',
-                '#388e3c',
-                '#1976d2'
-            ],
-            borderWidth: 2
-        }]
-    },
-    options: {
-        indexAxis: 'y', // Hace que las barras sean horizontales
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                display: false
-            },
-            tooltip: {
-                callbacks: {
-                    label: function(context) {
-                        return context.parsed.x + ' solicitudes';
-                    }
-                }
-            }
+renderDoughnut('veredictosChart', {{ veredictos_labels|safe }}, {{ veredictos_valores|safe }}, PALETTE_VEREDICTO);
+renderDoughnut('estadosChart',    {{ estados_labels|safe }},    {{ estados_valores|safe }},    PALETTE_ESTADO);
+renderDoughnut('tiposChart',      {{ tipos_labels|safe }},      {{ tipos_valores|safe }},      PALETTE_TIPO);
+
+// Motivos NO_RETENIDO (barras horizontales)
+(function() {
+    const el = document.getElementById('motivosChart');
+    const data = {{ motivos_valores|safe }};
+    const labels = {{ motivos_labels|safe }};
+    if (!data.length) {
+        el.parentElement.innerHTML = '<div class="empty-chart">No hay casos marcados como "No retenido" en el periodo.</div>';
+        return;
+    }
+    new Chart(el.getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Casos',
+                data: data,
+                backgroundColor: '#c62828',
+                borderColor: '#8e0000',
+                borderWidth: 1,
+            }]
         },
-        scales: {
-            x: {
-                beginAtZero: true,
-                ticks: {
-                    stepSize: 1,
-                    font: {
-                        size: 12
-                    }
-                },
-                grid: {
-                    color: 'rgba(0, 0, 0, 0.05)'
-                }
-            },
-            y: {
-                ticks: {
-                    font: {
-                        size: 12
-                    }
-                },
-                grid: {
-                    display: false
-                }
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { beginAtZero: true, ticks: { stepSize: 1 } },
+                y: { grid: { display: false } }
             }
         }
+    });
+})();
+
+// Retención por ejecutivo (barras verticales con %)
+(function() {
+    const el = document.getElementById('ejecPerfChart');
+    const data = {{ ejec_perf_valores|safe }};
+    const labels = {{ ejec_perf_labels|safe }};
+    if (!data.length) {
+        el.parentElement.innerHTML = '<div class="empty-chart">Sin casos cerrados en el periodo para calcular el rendimiento.</div>';
+        return;
     }
-});
+    new Chart(el.getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Tasa de retención (%)',
+                data: data,
+                backgroundColor: '#722f37',
+                borderColor: '#4a1c24',
+                borderWidth: 1,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: { label: ctx => `${ctx.parsed.y}% retenidos` }
+                }
+            },
+            scales: {
+                y: { beginAtZero: true, max: 100, ticks: { callback: v => v + '%' } },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+})();
+
+// Tendencia mensual (línea)
+(function() {
+    const el = document.getElementById('mesesChart');
+    const data = {{ meses_valores|safe }};
+    const labels = {{ meses_labels|safe }};
+    if (!data.length) {
+        el.parentElement.innerHTML = '<div class="empty-chart">Sin historial en los últimos 6 meses.</div>';
+        return;
+    }
+    new Chart(el.getContext('2d'), {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Solicitudes',
+                data: data,
+                borderColor: '#722f37',
+                backgroundColor: 'rgba(114,47,55,0.12)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.35,
+                pointBackgroundColor: '#722f37',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 4,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, ticks: { stepSize: 1 } },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+})();
 </script>
 {% endblock %}
